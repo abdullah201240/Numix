@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -25,6 +26,11 @@ export const ContactListItem: React.FC<ContactListItemProps> = ({
   const { colors } = useTheme();
   const fullName = getFullName(contact);
 
+  const handleFavoritePress = (e: any) => {
+    e.stopPropagation();
+    onToggleFavorite?.();
+  };
+
   return (
     <Pressable
       style={[styles.container, { backgroundColor: colors.card }]}
@@ -44,6 +50,20 @@ export const ContactListItem: React.FC<ContactListItemProps> = ({
         >
           {fullName}
         </Text>
+
+        {onToggleFavorite && (
+          <Pressable
+            onPress={handleFavoritePress}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            style={styles.favoriteButton}
+          >
+            <Ionicons
+              name={contact.isFavorite ? 'star' : 'star-outline'}
+              size={20}
+              color={contact.isFavorite ? colors.starActive : colors.textTertiary}
+            />
+          </Pressable>
+        )}
       </View>
       
       {showDivider && !isLast && (
@@ -71,6 +91,10 @@ const styles = StyleSheet.create({
     fontWeight: '400',
     letterSpacing: -0.41,
     marginLeft: 12,
+  },
+  favoriteButton: {
+    padding: 4,
+    marginLeft: 8,
   },
   divider: {
     height: StyleSheet.hairlineWidth,

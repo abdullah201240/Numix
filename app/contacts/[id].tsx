@@ -19,7 +19,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ContactAvatar } from '../../components/contacts/ContactAvatar';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useContactsStore } from '../../store/contactsStore';
-import { useRecentsStore } from '../../store/recentsStore';
 import { EMAIL_LABELS, PHONE_LABELS } from '../../types/contact';
 import { getFullName } from '../../utils/contacts';
 
@@ -30,7 +29,6 @@ export default function ContactDetailsScreen() {
   const { colors } = useTheme();
 
   const { getContactById, toggleFavorite, deleteContact } = useContactsStore();
-  const { addRecent } = useRecentsStore();
 
   const contact = getContactById(id);
   const fullName = contact ? getFullName(contact) : '';
@@ -74,13 +72,12 @@ export default function ContactDetailsScreen() {
       const phoneUrl = `tel:${contact.phones[0].number.replace(/\D/g, '')}`;
       const supported = await Linking.canOpenURL(phoneUrl);
       if (supported) {
-        await addRecent(contact.id, fullName, contact.phones[0].number, 'outgoing');
         Linking.openURL(phoneUrl);
       } else {
         Alert.alert('Cannot make calls on this device');
       }
     }
-  }, [contact, fullName, addRecent]);
+  }, [contact]);
 
   const handleMessage = useCallback(async () => {
     if (contact && contact.phones[0]) {
@@ -99,14 +96,11 @@ export default function ContactDetailsScreen() {
     const phoneUrl = `tel:${number.replace(/\D/g, '')}`;
     const supported = await Linking.canOpenURL(phoneUrl);
     if (supported) {
-      if (contact) {
-        await addRecent(contact.id, fullName, number, 'outgoing');
-      }
       Linking.openURL(phoneUrl);
     } else {
       Alert.alert('Cannot make calls on this device');
     }
-  }, [contact, fullName, addRecent]);
+  }, []);
 
   const handleEmailPress = useCallback((email: string) => {
     Linking.openURL(`mailto:${email}`);

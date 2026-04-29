@@ -24,7 +24,6 @@ const CustomTabBar: React.FC<CustomTabBarProps> = ({ state, descriptors, navigat
   const tabIcons: Record<string, { focused: string; unfocused: string }> = {
     contacts: { focused: 'people', unfocused: 'people-outline' },
     favorites: { focused: 'star', unfocused: 'star-outline' },
-    recents: { focused: 'time', unfocused: 'time-outline' },
   };
 
   // Track tab changes for animation
@@ -177,7 +176,6 @@ export default function AppLayout() {
     >
       <Tabs.Screen name="contacts" options={{ tabBarLabel: 'Contacts' }} />
       <Tabs.Screen name="favorites" options={{ tabBarLabel: 'Favorites' }} />
-      <Tabs.Screen name="recents" options={{ tabBarLabel: 'Recents' }} />
     </Tabs>
   );
 }
@@ -201,7 +199,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 4,
     height: 60,
-    width: `${100 / 3}%`,
+    width: `${100 / 2}%`,
     borderRadius: 22,
     overflow: 'hidden',
     zIndex: 0,
