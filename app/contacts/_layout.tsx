@@ -1,21 +1,24 @@
 import { Stack } from 'expo-router';
-import { Colors } from '../../constants/theme';
+import { useTheme } from '../../contexts/ThemeContext';
 
 export default function ContactsStackLayout() {
+  const { colors } = useTheme();
+  
   return (
     <Stack
       screenOptions={{
         headerStyle: {
-          backgroundColor: Colors.background,
+          backgroundColor: colors.background,
         },
-        headerTintColor: Colors.tint,
+        headerTintColor: colors.tint,
         headerTitleStyle: {
           fontWeight: '600',
           fontSize: 17,
+          color: colors.textPrimary,
         },
         headerShadowVisible: false,
         contentStyle: {
-          backgroundColor: Colors.background,
+          backgroundColor: colors.background,
         },
       }}
     >
@@ -23,7 +26,8 @@ export default function ContactsStackLayout() {
         name="[id]"
         options={{
           title: '',
-          headerTransparent: true,
+          headerTransparent: false,
+          headerBackTitle: 'Contacts',
         }}
       />
       <Stack.Screen

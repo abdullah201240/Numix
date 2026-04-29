@@ -1,6 +1,14 @@
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withSequence,
+  withTiming,
+  withDelay,
+} from 'react-native-reanimated';
 import { useTheme } from '../../contexts/ThemeContext';
 
 interface EmptyStateProps {
@@ -19,17 +27,40 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
   onAction,
 }) => {
   const { colors } = useTheme();
-  
+  const bounce = useSharedValue(0);
+
+  React.useEffect(() => {
+    bounce.value = withRepeat(
+      withSequence(
+        withDelay(1000, withTiming(-8, { duration: 600 })),
+        withTiming(0, { duration: 600 })
+      ),
+      -1,
+      false
+    );
+  }, []);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: bounce.value }],
+  }));
+
   return (
     <View style={styles.container}>
-      <View style={styles.iconContainer}>
-        <Ionicons name={icon} size={60} color={colors.textTertiary} />
-      </View>
+      <Animated.View style={[styles.iconWrapper, animatedStyle]}>
+        <View style={[styles.iconCircle, { backgroundColor: colors.tertiaryBackground }]}>
+          <Ionicons name={icon} size={48} color={colors.textTertiary} />
+        </View>
+      </Animated.View>
+      
       <Text style={[styles.title, { color: colors.textPrimary }]}>{title}</Text>
       <Text style={[styles.subtitle, { color: colors.textSecondary }]}>{subtitle}</Text>
+      
       {actionLabel && onAction && (
-        <Pressable style={[styles.button, { backgroundColor: colors.tint }]} onPress={onAction}>
-          <Text style={[styles.buttonText, { color: colors.background }]}>{actionLabel}</Text>
+        <Pressable
+          style={[styles.button, { backgroundColor: colors.tint }]}
+          onPress={onAction}
+        >
+          <Text style={[styles.buttonText, { color: '#FFFFFF' }]}>{actionLabel}</Text>
         </Pressable>
       )}
     </View>
@@ -41,25 +72,32 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 32,
+    paddingHorizontal: 40,
   },
-  iconContainer: {
-    marginBottom: 16,
+  iconWrapper: {
+    marginBottom: 24,
+  },
+  iconCircle: {
+    width: 96,
+    height: 96,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   title: {
     fontSize: 22,
-    fontWeight: '700',
+    fontWeight: '600',
     textAlign: 'center',
     marginBottom: 8,
   },
   subtitle: {
-    fontSize: 17,
-    fontWeight: '400',
+    fontSize: 15,
     textAlign: 'center',
-    marginBottom: 20,
+    lineHeight: 22,
   },
   button: {
-    paddingHorizontal: 20,
+    marginTop: 24,
+    paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 12,
   },

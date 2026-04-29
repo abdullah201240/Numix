@@ -3,13 +3,14 @@ import React, { useCallback } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ContactForm } from '../../components/contacts/ContactForm';
-import { Colors, Typography } from '../../constants/theme';
+import { useTheme } from '../../contexts/ThemeContext';
 import { useContactsStore } from '../../store/contactsStore';
 import { Contact } from '../../types/contact';
 
 export default function AddContactScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { colors } = useTheme();
   const { addContact } = useContactsStore();
 
   const handleSave = useCallback(async (contactData: Omit<Contact, 'id' | 'createdAt' | 'updatedAt'>) => {
@@ -22,15 +23,10 @@ export default function AddContactScreen() {
   }, [router]);
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.secondaryBackground }]}>
       <Stack.Screen
         options={{
-          headerLeft: () => (
-            <Pressable onPress={handleCancel} hitSlop={8}>
-              <Text style={styles.cancelButton}>Cancel</Text>
-            </Pressable>
-          ),
-          headerRight: () => null,
+          title: 'New Contact',
         }}
       />
       
@@ -45,10 +41,5 @@ export default function AddContactScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.secondaryBackground,
-  },
-  cancelButton: {
-    ...Typography.body,
-    color: Colors.tint,
   },
 });

@@ -1,9 +1,9 @@
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useCallback } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ContactForm } from '../../../components/contacts/ContactForm';
-import { Colors, Typography } from '../../../constants/theme';
+import { useTheme } from '../../../contexts/ThemeContext';
 import { useContactsStore } from '../../../store/contactsStore';
 import { Contact } from '../../../types/contact';
 
@@ -11,6 +11,7 @@ export default function EditContactScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { colors } = useTheme();
   const { getContactById, updateContact, deleteContact } = useContactsStore();
   
   const contact = getContactById(id);
@@ -31,22 +32,17 @@ export default function EditContactScreen() {
 
   if (!contact) {
     return (
-      <View style={styles.errorContainer}>
-        <Text style={styles.errorText}>Contact not found</Text>
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
+        <Text style={[styles.errorText, { color: colors.textSecondary }]}>Contact not found</Text>
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.secondaryBackground }]}>
       <Stack.Screen
         options={{
-          headerLeft: () => (
-            <Pressable onPress={handleCancel} hitSlop={8}>
-              <Text style={styles.cancelButton}>Cancel</Text>
-            </Pressable>
-          ),
-          headerRight: () => null,
+          title: 'Edit Contact',
         }}
       />
       
@@ -63,19 +59,10 @@ export default function EditContactScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.secondaryBackground,
-  },
-  errorContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   errorText: {
-    ...Typography.body,
-    color: Colors.textSecondary,
-  },
-  cancelButton: {
-    ...Typography.body,
-    color: Colors.tint,
+    fontSize: 17,
+    textAlign: 'center',
+    marginTop: 100,
   },
 });

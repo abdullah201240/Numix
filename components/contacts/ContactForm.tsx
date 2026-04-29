@@ -11,7 +11,7 @@ import {
     TextInput,
     View,
 } from 'react-native';
-import { BorderRadius, Colors, HitSlop, Spacing, Typography } from '../../constants/theme';
+import { useTheme } from '../../contexts/ThemeContext';
 import { Contact, EMAIL_LABELS, EmailAddress, EmailLabel } from '../../types/contact';
 import { generateId } from '../../utils/uuid';
 import { PhoneInput } from './PhoneInput';
@@ -29,6 +29,7 @@ export const ContactForm: React.FC<ContactFormProps> = ({
   onCancel,
   onDelete,
 }) => {
+  const { colors } = useTheme();
   const [firstName, setFirstName] = useState(initialData?.firstName || '');
   const [lastName, setLastName] = useState(initialData?.lastName || '');
   const [phones, setPhones] = useState(initialData?.phones || [
@@ -36,6 +37,7 @@ export const ContactForm: React.FC<ContactFormProps> = ({
   ]);
   const [emails, setEmails] = useState<EmailAddress[]>(initialData?.emails || []);
   const [company, setCompany] = useState(initialData?.company || '');
+  const [jobTitle, setJobTitle] = useState(initialData?.jobTitle || '');
   const [address, setAddress] = useState(initialData?.address || '');
   const [notes, setNotes] = useState(initialData?.notes || '');
   const [showEmailLabels, setShowEmailLabels] = useState<string | null>(null);
@@ -79,7 +81,7 @@ export const ContactForm: React.FC<ContactFormProps> = ({
       phones: validPhones,
       emails: validEmails,
       company: company.trim(),
-      jobTitle: '',
+      jobTitle: jobTitle.trim(),
       address: address.trim(),
       notes: notes.trim(),
       isFavorite: initialData?.isFavorite || false,
@@ -99,132 +101,145 @@ export const ContactForm: React.FC<ContactFormProps> = ({
 
   return (
     <KeyboardAvoidingView
-      style={styles.container}
+      style={[styles.container, { backgroundColor: colors.secondaryBackground }]}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <ScrollView style={styles.scrollView} keyboardShouldPersistTaps="handled">
         <View style={styles.section}>
-          <Text style={styles.sectionHeader}>NAME</Text>
-          <View style={styles.inputContainer}>
+          <Text style={[styles.sectionHeader, { color: colors.textSecondary }]}>name</Text>
+          <View style={[styles.card, { backgroundColor: colors.card }]}>
             <TextInput
-              style={[styles.input, styles.inputNoBorder]}
+              style={[styles.input, styles.inputNoBorder, { color: colors.textPrimary }]}
               value={firstName}
               onChangeText={setFirstName}
               placeholder="First Name"
-              placeholderTextColor={Colors.textTertiary}
+              placeholderTextColor={colors.textTertiary}
               autoCapitalize="words"
             />
-          </View>
-          <View style={styles.inputContainer}>
+            <View style={[styles.inputDivider, { backgroundColor: colors.divider }]} />
             <TextInput
-              style={[styles.input, styles.inputNoBorder]}
+              style={[styles.input, styles.inputNoBorder, { color: colors.textPrimary }]}
               value={lastName}
               onChangeText={setLastName}
               placeholder="Last Name"
-              placeholderTextColor={Colors.textTertiary}
+              placeholderTextColor={colors.textTertiary}
               autoCapitalize="words"
             />
           </View>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionHeader}>PHONE</Text>
+          <Text style={[styles.sectionHeader, { color: colors.textSecondary }]}>phone</Text>
           <PhoneInput phones={phones} onChange={setPhones} />
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionHeader}>EMAIL</Text>
-          {emails.map((email) => (
-            <View key={email.id} style={styles.emailRow}>
-              <Pressable
-                style={styles.labelButton}
-                onPress={() => setShowEmailLabels(showEmailLabels === email.id ? null : email.id)}
-              >
-                <Text style={styles.labelText}>{getLabelDisplay(email.label)}</Text>
-                <Ionicons name="chevron-down" size={14} color={Colors.textSecondary} />
-              </Pressable>
-              <TextInput
-                style={styles.emailInput}
-                value={email.email}
-                onChangeText={(value) => updateEmail(email.id, 'email', value)}
-                placeholder="Email"
-                placeholderTextColor={Colors.textTertiary}
-                keyboardType="email-address"
-                autoCapitalize="none"
-              />
-              <Pressable
-                onPress={() => removeEmail(email.id)}
-                hitSlop={HitSlop}
-              >
-                <Ionicons name="remove-circle-outline" size={24} color={Colors.red} />
-              </Pressable>
-            </View>
-          ))}
+          <Text style={[styles.sectionHeader, { color: colors.textSecondary }]}>email</Text>
+          <View style={[styles.card, { backgroundColor: colors.card }]}>
+            {emails.map((email, index) => (
+              <View key={email.id}>
+                <View style={styles.emailRow}>
+                  <Pressable
+                    style={styles.labelButton}
+                    onPress={() => setShowEmailLabels(showEmailLabels === email.id ? null : email.id)}
+                  >
+                    <Text style={[styles.labelText, { color: colors.tint }]}>
+                      {getLabelDisplay(email.label)}
+                    </Text>
+                    <Ionicons name="chevron-down" size={14} color={colors.tint} />
+                  </Pressable>
+                  <TextInput
+                    style={[styles.emailInput, { color: colors.textPrimary }]}
+                    value={email.email}
+                    onChangeText={(value) => updateEmail(email.id, 'email', value)}
+                    placeholder="Email"
+                    placeholderTextColor={colors.textTertiary}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                  />
+                  <Pressable
+                    onPress={() => removeEmail(email.id)}
+                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                  >
+                    <Ionicons name="remove-circle-outline" size={22} color={colors.red} />
+                  </Pressable>
+                </View>
+                {index < emails.length - 1 && (
+                  <View style={[styles.inputDivider, { backgroundColor: colors.divider }]} />
+                )}
+              </View>
+            ))}
+          </View>
           
           {showEmailLabels && (
-            <View style={styles.labelsDropdown}>
+            <View style={[styles.labelsDropdown, { backgroundColor: colors.card }]}>
               {EMAIL_LABELS.map((label) => (
                 <Pressable
                   key={label.value}
                   style={styles.labelOption}
                   onPress={() => {
-                    const emailId = showEmailLabels;
-                    updateEmail(emailId, 'label', label.value);
+                    updateEmail(showEmailLabels, 'label', label.value);
                     setShowEmailLabels(null);
                   }}
                 >
-                  <Text style={styles.labelOptionText}>{label.label}</Text>
+                  <Text style={[styles.labelOptionText, { color: colors.textPrimary }]}>
+                    {label.label}
+                  </Text>
                   {emails.find((e) => e.id === showEmailLabels)?.label === label.value && (
-                    <Ionicons name="checkmark" size={18} color={Colors.tint} />
+                    <Ionicons name="checkmark" size={18} color={colors.tint} />
                   )}
                 </Pressable>
               ))}
             </View>
           )}
 
-          <Pressable style={styles.addButton} onPress={addEmail}>
-            <Ionicons name="add-circle-outline" size={20} color={Colors.tint} />
-            <Text style={styles.addButtonText}>Add Email</Text>
+          <Pressable 
+            style={[styles.addButton, { backgroundColor: colors.card }]} 
+            onPress={addEmail}
+          >
+            <Ionicons name="add-circle-outline" size={22} color={colors.tint} />
+            <Text style={[styles.addButtonText, { color: colors.tint }]}>Add Email</Text>
           </Pressable>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionHeader}>COMPANY</Text>
-          <View style={styles.inputContainer}>
+          <Text style={[styles.sectionHeader, { color: colors.textSecondary }]}>company</Text>
+          <View style={[styles.card, { backgroundColor: colors.card }]}>
             <TextInput
-              style={styles.input}
+              style={[styles.input, styles.inputNoBorder, { color: colors.textPrimary }]}
               value={company}
               onChangeText={setCompany}
               placeholder="Company"
-              placeholderTextColor={Colors.textTertiary}
+              placeholderTextColor={colors.textTertiary}
               autoCapitalize="words"
             />
           </View>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionHeader}>ADDRESS</Text>
-          <View style={styles.inputContainer}>
+          <Text style={[styles.sectionHeader, { color: colors.textSecondary }]}>address</Text>
+          <View style={[styles.card, { backgroundColor: colors.card }]}>
             <TextInput
-              style={styles.input}
+              style={[styles.input, styles.inputNoBorder, { color: colors.textPrimary, minHeight: 44 }]}
               value={address}
               onChangeText={setAddress}
               placeholder="Address"
-              placeholderTextColor={Colors.textTertiary}
+              placeholderTextColor={colors.textTertiary}
               multiline
+              textAlignVertical="top"
             />
           </View>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionHeader}>NOTES</Text>
-          <View style={styles.inputContainer}>
+          <Text style={[styles.sectionHeader, { color: colors.textSecondary }]}>notes</Text>
+          <View style={[styles.card, { backgroundColor: colors.card }]}>
             <TextInput
-              style={[styles.input, styles.notesInput]}
+              style={[styles.input, styles.inputNoBorder, styles.notesInput, { color: colors.textPrimary }]}
               value={notes}
               onChangeText={setNotes}
               placeholder="Notes"
-              placeholderTextColor={Colors.textTertiary}
+              placeholderTextColor={colors.textTertiary}
               multiline
               textAlignVertical="top"
             />
@@ -232,17 +247,24 @@ export const ContactForm: React.FC<ContactFormProps> = ({
         </View>
 
         {onDelete && (
-          <Pressable style={styles.deleteButton} onPress={handleDelete}>
-            <Text style={styles.deleteButtonText}>Delete Contact</Text>
-          </Pressable>
+          <View style={styles.section}>
+            <Pressable 
+              style={[styles.deleteButton, { backgroundColor: colors.card }]} 
+              onPress={handleDelete}
+            >
+              <Text style={[styles.deleteButtonText, { color: colors.red }]}>Delete Contact</Text>
+            </Pressable>
+          </View>
         )}
+        
+        <View style={{ height: 100 }} />
       </ScrollView>
 
-      <View style={styles.footer}>
+      <View style={[styles.footer, { backgroundColor: colors.secondaryBackground }]}>
         <Pressable style={styles.cancelButton} onPress={onCancel}>
-          <Text style={styles.cancelButtonText}>Cancel</Text>
+          <Text style={[styles.cancelButtonText, { color: colors.tint }]}>Cancel</Text>
         </Pressable>
-        <Pressable style={styles.saveButton} onPress={handleSave}>
+        <Pressable style={[styles.saveButton, { backgroundColor: colors.tint }]} onPress={handleSave}>
           <Text style={styles.saveButtonText}>Save</Text>
         </Pressable>
       </View>
@@ -253,136 +275,127 @@ export const ContactForm: React.FC<ContactFormProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.secondaryBackground,
   },
   scrollView: {
     flex: 1,
   },
   section: {
-    marginTop: Spacing.xl,
+    marginTop: 24,
+    paddingHorizontal: 16,
   },
   sectionHeader: {
-    ...Typography.footnote,
-    color: Colors.textSecondary,
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.sm,
+    fontSize: 13,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+    marginBottom: 8,
+    marginLeft: 16,
+    textTransform: 'lowercase',
   },
-  inputContainer: {
-    backgroundColor: Colors.background,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderColor: Colors.divider,
+  card: {
+    borderRadius: 11,
+    overflow: 'hidden',
   },
   input: {
-    ...Typography.body,
-    color: Colors.textPrimary,
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: Colors.divider,
+    fontSize: 17,
+    paddingHorizontal: 16,
+    paddingVertical: 13,
+    minHeight: 48,
   },
   inputNoBorder: {
     borderBottomWidth: 0,
   },
+  inputDivider: {
+    height: StyleSheet.hairlineWidth,
+    marginLeft: 16,
+  },
   notesInput: {
-    height: 100,
-    textAlignVertical: 'top',
+    minHeight: 100,
   },
   emailRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.background,
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.sm,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: Colors.divider,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    minHeight: 50,
   },
   labelButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    width: 70,
+    width: 72,
   },
   labelText: {
-    ...Typography.body,
-    color: Colors.tint,
-    marginRight: Spacing.xs,
+    fontSize: 15,
+    fontWeight: '500',
+    marginRight: 4,
   },
   emailInput: {
     flex: 1,
-    ...Typography.body,
-    color: Colors.textPrimary,
-    paddingVertical: Spacing.sm,
+    fontSize: 17,
+    paddingVertical: 4,
   },
   labelsDropdown: {
-    backgroundColor: Colors.background,
-    borderRadius: BorderRadius.medium,
-    borderWidth: 1,
-    borderColor: Colors.divider,
-    marginTop: Spacing.sm,
-    marginHorizontal: Spacing.lg,
+    borderRadius: 11,
+    marginTop: 8,
+    overflow: 'hidden',
   },
   labelOption: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: Spacing.md,
-    paddingHorizontal: Spacing.lg,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: Colors.divider,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
   },
   labelOptionText: {
-    ...Typography.body,
-    color: Colors.textPrimary,
+    fontSize: 17,
   },
   addButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.background,
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: Colors.divider,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    marginTop: 8,
+    borderRadius: 11,
   },
   addButtonText: {
-    ...Typography.body,
-    color: Colors.tint,
-    marginLeft: Spacing.sm,
+    fontSize: 17,
+    fontWeight: '500',
+    marginLeft: 8,
   },
   deleteButton: {
-    marginTop: Spacing.xxxl,
-    marginBottom: Spacing.xl,
     alignItems: 'center',
-    paddingVertical: Spacing.lg,
+    paddingVertical: 14,
+    borderRadius: 11,
+    marginBottom: 16,
   },
   deleteButtonText: {
-    ...Typography.body,
-    color: Colors.red,
+    fontSize: 17,
+    fontWeight: '500',
   },
   footer: {
     flexDirection: 'row',
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.lg,
-    backgroundColor: Colors.secondaryBackground,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    paddingBottom: 34,
   },
   cancelButton: {
     flex: 1,
     alignItems: 'center',
-    paddingVertical: Spacing.md,
+    paddingVertical: 14,
   },
   cancelButtonText: {
-    ...Typography.headline,
-    color: Colors.tint,
+    fontSize: 17,
+    fontWeight: '500',
   },
   saveButton: {
     flex: 1,
-    backgroundColor: Colors.tint,
     alignItems: 'center',
-    paddingVertical: Spacing.md,
-    borderRadius: BorderRadius.medium,
-    marginLeft: Spacing.lg,
+    paddingVertical: 14,
+    borderRadius: 11,
+    marginLeft: 12,
   },
   saveButtonText: {
-    ...Typography.headline,
-    color: Colors.background,
+    fontSize: 17,
+    fontWeight: '600',
+    color: '#FFFFFF',
   },
 });

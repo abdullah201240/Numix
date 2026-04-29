@@ -1,6 +1,13 @@
 import React, { useCallback } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View, Dimensions } from 'react-native';
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+} from 'react-native-reanimated';
 import { useTheme } from '../../contexts/ThemeContext';
+
+const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 interface AlphabetIndexProps {
   sections: { title: string }[];
@@ -16,14 +23,19 @@ export const AlphabetIndex: React.FC<AlphabetIndexProps> = ({
   currentLetter,
 }) => {
   const { colors } = useTheme();
+  const scale = useSharedValue(1);
   
-  const letters = ALPHABET.filter((letter) => {
-    return sections.some((s) => s.title === letter);
-  });
+  const letters = ALPHABET.filter((letter) =>
+    sections.some((s) => s.title === letter)
+  );
 
   const handlePress = useCallback((letter: string) => {
     onLetterSelect(letter);
   }, [onLetterSelect]);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
 
   if (letters.length === 0) {
     return null;
@@ -31,20 +43,38 @@ export const AlphabetIndex: React.FC<AlphabetIndexProps> = ({
 
   return (
     <View style={styles.container}>
-      {letters.map((letter) => {
-        const isActive = currentLetter === letter;
-        return (
-          <Pressable
-            key={letter}
-            onPress={() => handlePress(letter)}
-            hitSlop={{ top: 2, bottom: 2, left: 4, right: 4 }}
-          >
-            <Text style={[styles.letter, { color: colors.tint }, isActive && styles.letterActive]}>
-              {letter}
-            </Text>
-          </Pressable>
-        );
-      })}
+      <Animated.View 
+        style={[
+          styles.indexContainer,
+          { backgroundColor: colors.tertiaryBackground },
+          animatedStyle
+        ]}
+      >
+        {letters.map((letter) => {
+          const isActive = currentLetter === letter;
+          return (
+            <Pressable
+              key={letter}
+              onPress={() => handlePress(letter)}
+              hitSlop={{ top: 3, bottom: 3, left: 4, right: 4 }}
+              style={styles.letterContainer}
+            >
+              <Text
+                style={[
+                  styles.letter,
+                  {
+                    color: isActive ? colors.tint : colors.textSecondary,
+                    fontWeight: isActive ? '700' : '500',
+                    fontSize: isActive ? 11 : 10,
+                  },
+                ]}
+              >
+                {letter}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </Animated.View>
     </View>
   );
 };
@@ -52,24 +82,26 @@ export const AlphabetIndex: React.FC<AlphabetIndexProps> = ({
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
-    right: 0,
+    right: 2,
     top: 0,
     bottom: 0,
-    width: 28,
     justifyContent: 'center',
     alignItems: 'center',
     paddingVertical: 16,
   },
-  letter: {
-    fontSize: 12,
-    fontWeight: '400',
-    textAlign: 'center',
-    lineHeight: 14,
-    height: 14,
-    marginVertical: 1,
+  indexContainer: {
+    borderRadius: 12,
+    paddingVertical: 4,
+    paddingHorizontal: 4,
   },
-  letterActive: {
-    fontWeight: '700',
-    fontSize: 14,
+  letterContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    minWidth: 18,
+    height: 16,
+  },
+  letter: {
+    textAlign: 'center',
+    lineHeight: 16,
   },
 });

@@ -1,7 +1,13 @@
 import { Ionicons } from '@expo/vector-icons';
-import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
-import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
+import React, { useCallback } from 'react';
+import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+  withTiming,
+  runOnJS,
+} from 'react-native-reanimated';
 import { useTheme } from '../../contexts/ThemeContext';
 import { Contact } from '../../types/contact';
 import { getFullName } from '../../utils/contacts';
@@ -11,6 +17,8 @@ interface ContactListItemProps {
   contact: Contact;
   onPress: () => void;
   onToggleFavorite?: () => void;
+  onMessage?: () => void;
+  onCall?: () => void;
   showDivider?: boolean;
 }
 
@@ -26,6 +34,7 @@ export const ContactListItem: React.FC<ContactListItemProps> = ({
   const scale = useSharedValue(1);
   const opacity = useSharedValue(1);
   const fullName = getFullName(contact);
+  const firstPhone = contact.phones[0]?.number;
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
@@ -33,12 +42,12 @@ export const ContactListItem: React.FC<ContactListItemProps> = ({
   }));
 
   const handlePressIn = () => {
-    scale.value = withTiming(0.98, { duration: 100 });
+    scale.value = withSpring(0.98, { damping: 15, stiffness: 300 });
     opacity.value = withTiming(0.7, { duration: 100 });
   };
 
   const handlePressOut = () => {
-    scale.value = withTiming(1, { duration: 100 });
+    scale.value = withSpring(1, { damping: 15, stiffness: 300 });
     opacity.value = withTiming(1, { duration: 100 });
   };
 
@@ -48,7 +57,11 @@ export const ContactListItem: React.FC<ContactListItemProps> = ({
 
   return (
     <AnimatedPressable
-      style={[styles.container, { backgroundColor: colors.background }, animatedStyle]}
+      style={[
+        styles.container,
+        { backgroundColor: colors.background },
+        animatedStyle,
+      ]}
       onPress={onPress}
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
@@ -59,42 +72,91 @@ export const ContactListItem: React.FC<ContactListItemProps> = ({
           lastName={contact.lastName}
           size="small"
         />
+        
         <View style={styles.infoContainer}>
-          <Text style={[styles.name, { color: colors.textPrimary }]} numberOfLines={1}>
+          <Text 
+            style={[styles.name, { color: colors.textPrimary }]} 
+            numberOfLines={1}
+          >
             {fullName}
           </Text>
+          
+          {firstPhone && (
+            <Text 
+              style={[styles.phonePreview, { color: colors.textSecondary }]} 
+              numberOfLines={1}
+            >
+              {firstPhone}
+            </Text>
+          )}
         </View>
-        {contact.isFavorite && (
-          <Pressable onPress={handleFavoritePress} hitSlop={8}>
-            <Ionicons name="star" size={16} color={colors.starActive} />
-          </Pressable>
-        )}
+        
+        <View style={styles.trailingContainer}>
+          {contact.isFavorite && (
+            <Pressable 
+              onPress={handleFavoritePress} 
+              hitSlop={12}
+              style={styles.favoriteButton}
+            >
+              <Ionicons name="star" size={18} color={colors.starActive} fill={colors.starActive} />
+            </Pressable>
+          )}
+          
+          <Ionicons 
+            name="chevron-forward" 
+            size={16} 
+            color={colors.textTertiary} 
+            style={styles.chevron}
+          />
+        </View>
       </View>
+      
       {showDivider && (
-        <View style={[styles.divider, { backgroundColor: colors.divider }]} />
+        <View 
+          style={[styles.divider, { backgroundColor: colors.divider }]} 
+        />
       )}
     </AnimatedPressable>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {},
+  container: {
+    width: '100%',
+  },
   content: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingVertical: 11,
   },
   infoContainer: {
     flex: 1,
-    marginLeft: 12,
+    marginLeft: 14,
+    justifyContent: 'center',
   },
   name: {
     fontSize: 17,
-    fontWeight: '400',
+    fontWeight: '500',
+    letterSpacing: -0.2,
+  },
+  phonePreview: {
+    fontSize: 14,
+    marginTop: 2,
+    letterSpacing: -0.1,
+  },
+  trailingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  favoriteButton: {
+    padding: 4,
+  },
+  chevron: {
+    marginLeft: 4,
   },
   divider: {
     height: StyleSheet.hairlineWidth,
-    marginLeft: 68,
+    marginLeft: 70,
   },
 });

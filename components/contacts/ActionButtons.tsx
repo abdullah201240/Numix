@@ -2,9 +2,8 @@ import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { Alert, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
-import { Colors, Spacing, Typography } from '../../constants/theme';
+import { useTheme } from '../../contexts/ThemeContext';
 import { Contact } from '../../types/contact';
-import { getFullName } from '../../utils/contacts';
 
 interface ActionButtonsProps {
   contact: Contact;
@@ -14,8 +13,6 @@ interface ActionButtonsProps {
   onMail?: () => void;
 }
 
-const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
-
 interface ActionButtonProps {
   icon: keyof typeof Ionicons.glyphMap;
   label: string;
@@ -24,6 +21,8 @@ interface ActionButtonProps {
   disabled?: boolean;
 }
 
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+
 const ActionButton: React.FC<ActionButtonProps> = ({
   icon,
   label,
@@ -31,6 +30,7 @@ const ActionButton: React.FC<ActionButtonProps> = ({
   onPress,
   disabled,
 }) => {
+  const { colors } = useTheme();
   const scale = useSharedValue(1);
 
   const animatedStyle = useAnimatedStyle(() => ({
@@ -55,10 +55,10 @@ const ActionButton: React.FC<ActionButtonProps> = ({
       onPressOut={handlePressOut}
       disabled={disabled}
     >
-      <View style={[styles.iconContainer, { backgroundColor: disabled ? Colors.textTertiary : color }]}>
-        <Ionicons name={icon} size={22} color={Colors.background} />
+      <View style={[styles.iconContainer, { backgroundColor: disabled ? colors.textTertiary : color }]}>
+        <Ionicons name={icon} size={22} color="#FFFFFF" />
       </View>
-      <Text style={[styles.label, disabled && styles.labelDisabled]}>{label}</Text>
+      <Text style={[styles.label, { color: colors.textPrimary }]}>{label}</Text>
     </AnimatedPressable>
   );
 };
@@ -67,12 +67,11 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({
   contact,
   onCall,
   onMessage,
-  onVideo,
   onMail,
 }) => {
+  const { colors } = useTheme();
   const hasPhone = contact.phones.length > 0;
   const hasEmail = contact.emails.length > 0;
-  const fullName = getFullName(contact);
 
   const handleCall = () => {
     if (hasPhone) {
@@ -104,11 +103,6 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({
     }
   };
 
-  const handleVideo = () => {
-    Alert.alert('Video Call', `Starting FaceTime with ${fullName}...`);
-    onVideo?.();
-  };
-
   const handleMail = () => {
     if (hasEmail) {
       const email = contact.emails[0].email;
@@ -125,32 +119,25 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <ActionButton
-        icon="call-outline"
+        icon="call"
         label="Call"
-        color={Colors.green}
+        color={colors.green}
         onPress={handleCall}
         disabled={!hasPhone}
       />
       <ActionButton
-        icon="chatbubble-outline"
+        icon="chatbubbles"
         label="Message"
-        color={Colors.green}
+        color={colors.teal}
         onPress={handleMessage}
         disabled={!hasPhone}
       />
       <ActionButton
-        icon="videocam-outline"
-        label="Video"
-        color={Colors.tint}
-        onPress={handleVideo}
-        disabled={!hasPhone}
-      />
-      <ActionButton
-        icon="mail-outline"
+        icon="mail"
         label="Mail"
-        color={Colors.tint}
+        color={colors.tint}
         onPress={handleMail}
         disabled={!hasEmail}
       />
@@ -162,9 +149,8 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    paddingVertical: Spacing.lg,
-    paddingHorizontal: Spacing.xl,
-    backgroundColor: Colors.background,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
   },
   button: {
     alignItems: 'center',
@@ -173,18 +159,15 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   iconContainer: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: Spacing.xs,
+    marginBottom: 6,
   },
   label: {
-    ...Typography.caption1,
-    color: Colors.tint,
-  },
-  labelDisabled: {
-    color: Colors.textTertiary,
+    fontSize: 12,
+    fontWeight: '500',
   },
 });

@@ -3,17 +3,18 @@ import { Stack, useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  Animated,
+  Dimensions,
+  FlatList,
   Pressable,
   RefreshControl,
-  SectionList,
   StyleSheet,
   Text,
-  View
+  View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AlphabetIndex } from '../../components/contacts/AlphabetIndex';
 import { ContactListItem } from '../../components/contacts/ContactListItem';
-import { ContactListSection } from '../../components/contacts/ContactListSection';
 import { ContactsPermissionScreen } from '../../components/contacts/ContactsPermissionScreen';
 import { EmptyState } from '../../components/contacts/EmptyState';
 import { SearchBar } from '../../components/contacts/SearchBar';
@@ -22,23 +23,19 @@ import { useContactsStore } from '../../store/contactsStore';
 import { Contact } from '../../types/contact';
 import { checkContactsPermission, requestContactsPermission } from '../../services/contactsApi';
 
-type SectionData = {
-  title: string;
-  data: Contact[];
-};
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 export default function ContactsListScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const sectionListRef = useRef<SectionList<Contact, SectionData>>(null);
   const { colors } = useTheme();
+  const listRef = useRef<FlatList<Contact>>(null);
   
   const {
     contacts,
     loading,
     error,
     searchQuery,
-    syncStatus,
     loadContacts,
     syncFromPhone,
     requestPermission,
@@ -47,13 +44,15 @@ export default function ContactsListScreen() {
     getContactsByLetter,
   } = useContactsStore();
 
-  const [currentLetter, setCurrentLetter] = useState<string>('');
   const [refreshing, setRefreshing] = useState(false);
   const [showPermissionScreen, setShowPermissionScreen] = useState(true);
   const [isRequestingPermission, setIsRequestingPermission] = useState(false);
+  const [currentLetter, setCurrentLetter] = useState('');
   const hasCheckedPermission = useRef(false);
 
+  const scrollY = useRef(new Animated.Value(0)).current;
   const sections = getContactsByLetter();
+  const totalContacts = contacts.length;
 
   useEffect(() => {
     const init = async () => {
@@ -106,10 +105,14 @@ export default function ContactsListScreen() {
   const handleLetterSelect = useCallback((letter: string) => {
     setCurrentLetter(letter);
     const sectionIndex = sections.findIndex((s) => s.title === letter);
-    if (sectionIndex >= 0 && sectionListRef.current) {
-      sectionListRef.current.scrollToLocation({
-        sectionIndex,
-        itemIndex: 0,
+    if (sectionIndex >= 0) {
+      let index = 0;
+      for (let i = 0; i < sectionIndex; i++) {
+        index += sections[i].data.length;
+      }
+      listRef.current?.scrollToIndex({
+        index,
+        animated: true,
         viewOffset: 0,
       });
     }
@@ -123,11 +126,9 @@ export default function ContactsListScreen() {
     />
   ), [handleContactPress, handleToggleFavorite]);
 
-  const renderSectionHeader = useCallback(({ section }: { section: SectionData }) => (
-    <ContactListSection title={section.title} />
-  ), []);
-
   const keyExtractor = useCallback((item: Contact) => item.id, []);
+
+  const headerHeight = 52;
 
   if (showPermissionScreen) {
     return (
@@ -141,7 +142,7 @@ export default function ContactsListScreen() {
 
   if (loading && contacts.length === 0) {
     return (
-      <View style={[styles.loadingContainer, { backgroundColor: colors.background }]}>
+      <View style={[styles.loadingContainer, { backgroundColor: colors.background, paddingTop: insets.top }]}>
         <ActivityIndicator size="large" color={colors.tint} />
         <Text style={[styles.loadingText, { color: colors.textSecondary }]}>Loading contacts...</Text>
       </View>
@@ -150,12 +151,17 @@ export default function ContactsListScreen() {
 
   if (error && contacts.length === 0) {
     return (
-      <View style={[styles.errorContainer, { backgroundColor: colors.background }]}>
-        <Ionicons name="warning" size={48} color={colors.red} />
+      <View style={[styles.errorContainer, { backgroundColor: colors.background, paddingTop: insets.top }]}>
+        <View style={[styles.errorIcon, { backgroundColor: colors.tintLight }]}>
+          <Ionicons name="warning" size={32} color={colors.red} />
+        </View>
         <Text style={[styles.errorTitle, { color: colors.textPrimary }]}>Unable to Load Contacts</Text>
         <Text style={[styles.errorMessage, { color: colors.textSecondary }]}>{error}</Text>
-        <Pressable style={[styles.retryButton, { backgroundColor: colors.tint }]} onPress={syncFromPhone}>
-          <Text style={[styles.retryButtonText, { color: colors.background }]}>Retry</Text>
+        <Pressable 
+          style={[styles.retryButton, { backgroundColor: colors.tint }]} 
+          onPress={syncFromPhone}
+        >
+          <Text style={[styles.retryButtonText, { color: '#FFFFFF' }]}>Retry</Text>
         </Pressable>
       </View>
     );
@@ -163,60 +169,71 @@ export default function ContactsListScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <Stack.Screen
-        options={{
-          headerShown: true,
-          headerLargeTitle: true,
-          headerLargeTitleStyle: {
-            fontWeight: '700',
-            color: colors.textPrimary,
-          },
-          headerRight: () => (
-            <Pressable onPress={handleAddContact} hitSlop={8}>
-              <Ionicons name="add" size={28} color={colors.tint} />
-            </Pressable>
-          ),
-          headerLeft: () => null,
-        }}
-      />
-      
-      <SearchBar
-        value={searchQuery}
-        onChangeText={setSearchQuery}
-        placeholder="Search"
-      />
+      <View style={[styles.header, { paddingTop: insets.top + 8, backgroundColor: colors.background }]}>
+        <View style={styles.headerTop}>
+          <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>
+            Contacts
+          </Text>
+          <Pressable onPress={handleAddContact} hitSlop={12} style={styles.addButton}>
+            <Ionicons name="add" size={28} color={colors.tint} />
+          </Pressable>
+        </View>
+        
+        <View style={[styles.searchContainer, { backgroundColor: colors.tertiaryBackground }]}>
+          <Ionicons name="search" size={16} color={colors.textSecondary} />
+          <Pressable 
+            style={styles.searchInput}
+            onPress={() => {}}
+          >
+            <Text style={[styles.searchPlaceholder, { color: colors.textSecondary }]}>
+              Search
+            </Text>
+          </Pressable>
+        </View>
+        
+        <View style={styles.statsRow}>
+          <Text style={[styles.statsText, { color: colors.textSecondary }]}>
+            {totalContacts} {totalContacts === 1 ? 'contact' : 'contacts'}
+          </Text>
+        </View>
+      </View>
 
       {sections.length === 0 ? (
         <EmptyState
           title="No Contacts"
-          subtitle="No contacts found on your device"
+          subtitle="Pull down to refresh and load your contacts"
           icon="people-outline"
         />
       ) : (
-        <View style={styles.listContainer}>
-          <SectionList<Contact, SectionData>
-            ref={sectionListRef}
-            sections={sections}
+        <View style={styles.listWrapper}>
+          <Animated.FlatList
+            ref={listRef}
+            data={contacts}
             renderItem={renderItem}
-            renderSectionHeader={renderSectionHeader}
             keyExtractor={keyExtractor}
-            stickySectionHeadersEnabled
-            initialNumToRender={20}
-            maxToRenderPerBatch={20}
-            windowSize={10}
-            removeClippedSubviews
+            stickyHeaderIndices={[0]}
+            onScroll={Animated.event(
+              [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+              { useNativeDriver: true }
+            )}
+            scrollEventThrottle={16}
+            contentContainerStyle={[
+              styles.listContent,
+              { paddingBottom: insets.bottom + 60 + 16 },
+            ]}
             refreshControl={
               <RefreshControl
                 refreshing={refreshing}
                 onRefresh={handleRefresh}
                 tintColor={colors.tint}
+                progressViewOffset={headerHeight}
               />
             }
-            contentContainerStyle={[
-              styles.listContent,
-              { paddingBottom: insets.bottom + 16 },
-            ]}
-            SectionSeparatorComponent={() => <View style={styles.sectionSeparator} />}
+            showsVerticalScrollIndicator={false}
+            initialNumToRender={30}
+            maxToRenderPerBatch={20}
+            windowSize={10}
+            removeClippedSubviews
           />
           
           <AlphabetIndex
@@ -234,11 +251,50 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  header: {
+    paddingHorizontal: 16,
+    paddingBottom: 8,
+  },
+  headerTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
+  headerTitle: {
+    fontSize: 34,
+    fontWeight: '700',
+    letterSpacing: 0.4,
+  },
+  addButton: {
+    padding: 4,
+  },
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    height: 36,
+    borderRadius: 10,
+    paddingHorizontal: 8,
+  },
+  searchInput: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  searchPlaceholder: {
+    fontSize: 17,
+    marginLeft: 6,
+  },
+  statsRow: {
+    marginTop: 8,
+  },
+  statsText: {
+    fontSize: 13,
+    fontWeight: '500',
+  },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
   },
   loadingText: {
     fontSize: 17,
@@ -248,36 +304,41 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
+    padding: 24,
+  },
+  errorIcon: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
   },
   errorTitle: {
     fontSize: 20,
     fontWeight: '600',
-    marginTop: 16,
+    marginBottom: 8,
     textAlign: 'center',
   },
   errorMessage: {
-    fontSize: 17,
-    marginTop: 8,
+    fontSize: 15,
     textAlign: 'center',
+    marginBottom: 20,
   },
   retryButton: {
-    marginTop: 20,
     paddingHorizontal: 20,
     paddingVertical: 12,
-    borderRadius: 8,
+    borderRadius: 10,
   },
   retryButtonText: {
     fontSize: 17,
     fontWeight: '600',
   },
-  listContainer: {
+  listWrapper: {
     flex: 1,
+    position: 'relative',
   },
   listContent: {
     paddingBottom: 16,
-  },
-  sectionSeparator: {
-    height: 8,
   },
 });

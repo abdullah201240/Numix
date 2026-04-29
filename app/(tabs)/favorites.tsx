@@ -1,13 +1,14 @@
+import { Ionicons } from '@expo/vector-icons';
 import { Stack, useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
-    ActivityIndicator,
-    FlatList,
-    Pressable,
-    RefreshControl,
-    StyleSheet,
-    Text,
-    View,
+  ActivityIndicator,
+  FlatList,
+  Pressable,
+  RefreshControl,
+  StyleSheet,
+  Text,
+  View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ContactListItem } from '../../components/contacts/ContactListItem';
@@ -49,6 +50,10 @@ export default function FavoritesScreen() {
     await toggleFavorite(contactId);
   }, [toggleFavorite]);
 
+  const handleAddContact = useCallback(() => {
+    router.push('/contacts/add');
+  }, [router]);
+
   const renderItem = useCallback(({ item }: { item: Contact }) => (
     <ContactListItem
       contact={item}
@@ -61,7 +66,7 @@ export default function FavoritesScreen() {
 
   if (loading && favorites.length === 0) {
     return (
-      <View style={[styles.loadingContainer, { backgroundColor: colors.background }]}>
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
         <ActivityIndicator size="large" color={colors.tint} />
       </View>
     );
@@ -69,33 +74,40 @@ export default function FavoritesScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <Stack.Screen
-        options={{
-          headerRight: () => (
-            <Pressable onPress={() => router.push('/contacts/add')} hitSlop={8}>
-              <Text style={[styles.addButton, { color: colors.tint }]}>+</Text>
-            </Pressable>
-          ),
-        }}
-      />
+      <View style={styles.header}>
+        <View style={styles.headerTop}>
+          <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>
+            Favorites
+          </Text>
+          <Pressable onPress={handleAddContact} hitSlop={12} style={styles.addButton}>
+            <Ionicons name="add" size={28} color={colors.tint} />
+          </Pressable>
+        </View>
+        
+        <View style={styles.statsRow}>
+          <Text style={[styles.statsText, { color: colors.textSecondary }]}>
+            {favorites.length} {favorites.length === 1 ? 'contact' : 'contacts'}
+          </Text>
+        </View>
+      </View>
       
       {favorites.length === 0 ? (
         <EmptyState
           title="No Favorites"
-          subtitle="Add contacts to your favorites to see them here"
+          subtitle="Tap the star on any contact to add them here"
           icon="star-outline"
           actionLabel="Add Contact"
-          onAction={() => router.push('/contacts/add')}
+          onAction={handleAddContact}
         />
       ) : (
         <FlatList
           data={favorites}
           renderItem={renderItem}
           keyExtractor={keyExtractor}
-          initialNumToRender={20}
-          maxToRenderPerBatch={20}
-          windowSize={10}
-          removeClippedSubviews
+          contentContainerStyle={[
+            styles.listContent,
+            { paddingBottom: insets.bottom + 60 },
+          ]}
           refreshControl={
             <RefreshControl
               refreshing={refreshing}
@@ -103,10 +115,10 @@ export default function FavoritesScreen() {
               tintColor={colors.tint}
             />
           }
-          contentContainerStyle={[
-            styles.listContent,
-            { paddingBottom: insets.bottom + 16 },
-          ]}
+          showsVerticalScrollIndicator={false}
+          initialNumToRender={30}
+          maxToRenderPerBatch={20}
+          windowSize={10}
         />
       )}
     </View>
@@ -117,16 +129,33 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
+  header: {
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    paddingBottom: 8,
+  },
+  headerTop: {
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  headerTitle: {
+    fontSize: 34,
+    fontWeight: '700',
+    letterSpacing: 0.4,
+  },
+  addButton: {
+    padding: 4,
+  },
+  statsRow: {
+    marginTop: 4,
+  },
+  statsText: {
+    fontSize: 13,
+    fontWeight: '500',
   },
   listContent: {
     paddingBottom: 16,
-  },
-  addButton: {
-    fontSize: 28,
-    fontWeight: '400',
   },
 });
