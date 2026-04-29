@@ -1,12 +1,12 @@
 import { Ionicons } from '@expo/vector-icons';
+import { GlassView } from 'expo-glass-effect';
 import React, { useRef, useState } from 'react';
 import {
     Keyboard,
     Pressable,
     StyleSheet,
-    Text,
     TextInput,
-    View,
+    View
 } from 'react-native';
 import { useTheme } from '../../contexts/ThemeContext';
 
@@ -21,7 +21,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
   onChangeText,
   placeholder = 'Search',
 }) => {
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const inputRef = useRef<TextInput>(null);
   const [isFocused, setIsFocused] = useState(false);
 
@@ -41,7 +41,14 @@ const handleClear = () => {
 
   return (
     <View style={styles.container}>
-      <View style={[styles.inputWrapper, { backgroundColor: colors.searchBackground }]}>
+      <View style={styles.inputWrapper}>
+        <GlassView
+          glassEffectStyle="clear"
+          colorScheme={isDark ? 'dark' : 'light'}
+          tintColor={isDark ? 'rgba(28, 28, 30, 0.72)' : 'rgba(255, 255, 255, 0.72)'}
+          isInteractive
+          style={styles.glassBackground}
+        />
         <Ionicons 
           name="search" 
           size={15} 
@@ -84,11 +91,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     height: 36,
-    borderRadius: 10,
-    paddingHorizontal: 8,
+    borderRadius: 12,
+    paddingHorizontal: 10,
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  glassBackground: {
+    ...StyleSheet.absoluteFillObject,
+    borderRadius: 12,
+    borderWidth: 0.5,
   },
   searchIcon: {
     marginRight: 6,
+    zIndex: 1,
   },
   input: {
     flex: 1,
@@ -96,9 +111,11 @@ const styles = StyleSheet.create({
     padding: 0,
     height: 36,
     letterSpacing: -0.41,
+    zIndex: 1,
   },
   clearButton: {
     padding: 4,
+    zIndex: 1,
   },
   cancelButton: {
     marginLeft: 8,

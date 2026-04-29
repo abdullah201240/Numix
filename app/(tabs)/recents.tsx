@@ -11,6 +11,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import { GlassView } from 'expo-glass-effect';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ContactAvatar } from '../../components/contacts/ContactAvatar';
 import { EmptyState } from '../../components/contacts/EmptyState';
@@ -141,7 +142,7 @@ const CallRow = React.memo(({ call, onPress }: CallRowProps) => {
 export default function RecentsScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
 
   const { recents, loading, loadRecentsFromStorage, clearRecents } = useRecentsStore();
 
@@ -197,7 +198,13 @@ export default function RecentsScreen() {
 
   return (
 <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <View style={[styles.header, { paddingTop: insets.top + 4 }]}>
+      <GlassView 
+        glassEffectStyle="regular" 
+        colorScheme={isDark ? 'dark' : 'light'}
+        tintColor={isDark ? '#000000' : '#FFFFFF'}
+        style={styles.glassHeader} 
+      />
+      <View style={[styles.header, { paddingTop: insets.top + 4, backgroundColor: 'transparent' }]}>
         <View style={styles.filterRow}>
           <Pressable
             onPress={() => setMissedOnly(false)}
@@ -269,6 +276,13 @@ export default function RecentsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  glassHeader: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 180,
   },
   header: {
     paddingHorizontal: 16,
