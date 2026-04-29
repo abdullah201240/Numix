@@ -101,7 +101,7 @@ export const ContactForm: React.FC<ContactFormProps> = ({
 
   return (
     <KeyboardAvoidingView
-      style={[styles.container, { backgroundColor: colors.secondaryBackground }]}
+      style={[styles.container, { backgroundColor: colors.background }]}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <ScrollView style={styles.scrollView} keyboardShouldPersistTaps="handled">

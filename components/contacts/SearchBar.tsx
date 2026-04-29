@@ -32,9 +32,11 @@ export const SearchBar: React.FC<SearchBarProps> = ({
     Keyboard.dismiss();
   };
 
-  const handleClear = () => {
+const handleClear = () => {
     onChangeText('');
-    inputRef.current?.focus();
+    inputRef.current?.blur();
+    setIsFocused(false);
+    Keyboard.dismiss();
   };
 
   return (
@@ -60,18 +62,12 @@ export const SearchBar: React.FC<SearchBarProps> = ({
           autoCapitalize="none"
           clearButtonMode="never"
         />
-        {value.length > 0 && (
+        {(value.length > 0 || isFocused) && (
           <Pressable onPress={handleClear} hitSlop={8} style={styles.clearButton}>
             <Ionicons name="close-circle" size={16} color={colors.textTertiary} />
           </Pressable>
         )}
       </View>
-      
-      {isFocused && (
-        <Pressable onPress={handleCancel} style={styles.cancelButton}>
-          <Text style={[styles.cancelText, { color: colors.tint }]}>Cancel</Text>
-        </Pressable>
-      )}
     </View>
   );
 };

@@ -41,8 +41,8 @@ export interface ThemeColors {
 
 export const LightColors: ThemeColors = {
   background: '#FFFFFF',
-  secondaryBackground: '#F2F2F7',
-  tertiaryBackground: '#EFEFF4',
+  secondaryBackground: '#FFFFFF',
+  tertiaryBackground: '#F2F2F7',
   card: '#FFFFFF',
   
   divider: '#E5E5EA',
@@ -67,7 +67,7 @@ export const LightColors: ThemeColors = {
   
   starActive: '#FF9500',
   starInactive: '#C7C7CC',
-  searchBackground: 'rgba(118, 118, 128, 0.12)',
+  searchBackground: '#F2F2F7',
   
   tabBar: '#F8F8F8',
   tabBarBorder: '#C6C6C8',
@@ -76,16 +76,16 @@ export const LightColors: ThemeColors = {
 
 export const DarkColors: ThemeColors = {
   background: '#000000',
-  secondaryBackground: '#1C1C1E',
-  tertiaryBackground: '#2C2C2E',
-  card: '#1C1C1E',
+  secondaryBackground: '#000000',
+  tertiaryBackground: '#1C1C1E',
+  card: '#000000',
   
   divider: '#38383A',
   separator: '#48484A',
   
   textPrimary: '#FFFFFF',
-  textSecondary: '#8E8E93',
-  textTertiary: '#636366',
+  textSecondary: '#FFFFFF',
+  textTertiary: '#FFFFFF',
   
   tint: '#0A84FF',
   tintLight: '#1C3B5C',
@@ -102,11 +102,11 @@ export const DarkColors: ThemeColors = {
   
   starActive: '#FF9F0A',
   starInactive: '#636366',
-  searchBackground: 'rgba(118, 118, 128, 0.24)',
+  searchBackground: '#000000',
   
-  tabBar: '#1C1C1E',
+  tabBar: '#000000',
   tabBarBorder: '#38383A',
-  headerBackground: '#1C1C1E',
+  headerBackground: '#000000',
 };
 
 export const AvatarColors = [

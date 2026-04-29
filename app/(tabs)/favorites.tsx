@@ -81,14 +81,14 @@ export default function FavoritesScreen() {
 
   if (loading && favorites.length === 0) {
     return (
-      <View style={[styles.container, { backgroundColor: colors.secondaryBackground, paddingTop: insets.top }]}>
+      <View style={[styles.container, { backgroundColor: colors.background, paddingTop: insets.top }]}>
         <ActivityIndicator size="large" color={colors.tint} />
       </View>
     );
   }
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.secondaryBackground }]}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top + 4 }]}>
         <View style={styles.headerTop}>

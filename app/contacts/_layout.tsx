@@ -15,10 +15,10 @@ export default function ContactsStackLayout() {
         },
         headerShadowVisible: false,
         contentStyle: {
-          backgroundColor: colors.secondaryBackground,
+          backgroundColor: colors.background,
         },
         headerStyle: {
-          backgroundColor: colors.secondaryBackground,
+          backgroundColor: colors.background,
         },
         headerBackTitleStyle: {
           fontSize: 17,

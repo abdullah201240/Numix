@@ -8,6 +8,7 @@ import {
   RefreshControl,
   StyleSheet,
   Text,
+  TextInput,
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -172,7 +173,7 @@ export default function RecentsScreen() {
     ({ item }: { item: ListItem }) => {
       if (item.type === 'header') {
         return (
-          <View style={[styles.sectionHeader, { backgroundColor: colors.secondaryBackground }]}>
+          <View style={[styles.sectionHeader, { backgroundColor: colors.background }]}>
             <Text style={[styles.sectionHeaderText, { color: colors.textSecondary }]}>
               {item.label}
             </Text>
@@ -188,28 +189,15 @@ export default function RecentsScreen() {
 
   if (loading && recents.length === 0) {
     return (
-      <View style={[styles.container, { backgroundColor: colors.secondaryBackground, paddingTop: insets.top }]}>
+      <View style={[styles.container, { backgroundColor: colors.background, paddingTop: insets.top }]}>
         <ActivityIndicator size="large" color={colors.tint} />
       </View>
     );
   }
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.secondaryBackground }]}>
-      {/* Header */}
+<View style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={[styles.header, { paddingTop: insets.top + 4 }]}>
-        <View style={styles.headerTop}>
-          <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>Recents</Text>
-          <View style={styles.headerRight}>
-            {recents.length > 0 && (
-              <Pressable onPress={clearRecents} hitSlop={8}>
-                <Text style={[styles.clearButton, { color: colors.tint }]}>Clear</Text>
-              </Pressable>
-            )}
-          </View>
-        </View>
-
-        {/* Filter pills */}
         <View style={styles.filterRow}>
           <Pressable
             onPress={() => setMissedOnly(false)}
@@ -233,6 +221,22 @@ export default function RecentsScreen() {
               Missed
             </Text>
           </Pressable>
+          <View style={{ flex: 1 }} />
+          {recents.length > 0 && (
+            <Pressable onPress={clearRecents} hitSlop={8}>
+              <Text style={[styles.clearButton, { color: colors.tint }]}>Clear</Text>
+            </Pressable>
+          )}
+        </View>
+
+        <View style={[styles.searchInput, { backgroundColor: colors.searchBackground }]}>
+          <Ionicons name="search" size={18} color={colors.textSecondary} />
+          <TextInput
+            style={[styles.searchTextInput, { color: colors.textPrimary }]}
+            placeholder="Search"
+            placeholderTextColor={colors.textSecondary}
+            returnKeyType="search"
+          />
         </View>
       </View>
 
@@ -267,56 +271,46 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    paddingHorizontal: 0,
-  },
-  headerTop: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingTop: 8,
-    paddingBottom: 8,
-  },
-  headerTitle: {
-    fontSize: 34,
-    fontWeight: '700',
-    letterSpacing: 0.37,
-  },
-  headerRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  clearButton: {
-    fontSize: 17,
-    fontWeight: '400',
-    letterSpacing: -0.41,
   },
   filterRow: {
     flexDirection: 'row',
-    paddingHorizontal: 16,
-    paddingBottom: 10,
-    gap: 8,
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 12,
   },
   filterPill: {
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    borderRadius: 16,
+    paddingHorizontal: 18,
+    paddingVertical: 8,
+    borderRadius: 20,
   },
   filterPillText: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '500',
-    letterSpacing: -0.15,
+  },
+  clearButton: {
+    fontSize: 17,
+  },
+  searchInput: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    height: 44,
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    gap: 10,
+  },
+  searchTextInput: {
+    flex: 1,
+    fontSize: 17,
   },
   sectionHeader: {
-    paddingHorizontal: 16,
-    paddingVertical: 6,
-    height: 28,
-    justifyContent: 'flex-end',
+    paddingTop: 20,
+    paddingBottom: 8,
   },
   sectionHeaderText: {
     fontSize: 13,
     fontWeight: '600',
-    letterSpacing: -0.08,
     textTransform: 'uppercase',
   },
   callRow: {

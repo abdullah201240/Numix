@@ -32,7 +32,6 @@ export const AlphabetIndex: React.FC<AlphabetIndexProps> = ({
   return (
     <View style={styles.container}>
       {letters.map((letter) => {
-        const isActive = currentLetter === letter;
         return (
           <Pressable
             key={letter}
@@ -40,15 +39,7 @@ export const AlphabetIndex: React.FC<AlphabetIndexProps> = ({
             hitSlop={{ top: 2, bottom: 2, left: 6, right: 6 }}
             style={styles.letterContainer}
           >
-            <Text
-              style={[
-                styles.letter,
-                {
-                  color: isActive ? colors.tint : colors.textSecondary,
-                  fontWeight: isActive ? '600' : '400',
-                },
-              ]}
-            >
+            <Text style={[styles.letter, { color: '#0A84FF', fontWeight: '500' }]}>
               {letter}
             </Text>
           </Pressable>
@@ -61,22 +52,23 @@ export const AlphabetIndex: React.FC<AlphabetIndexProps> = ({
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
-    right: 1,
+    right: 2,
     top: 0,
     bottom: 0,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 8,
+    paddingVertical: 16,
   },
   letterContainer: {
     justifyContent: 'center',
     alignItems: 'center',
-    width: 16,
-    height: 14,
+    width: 20,
+    height: 18,
   },
   letter: {
-    fontSize: 10,
+    fontSize: 14,
+    fontWeight: '500',
     textAlign: 'center',
-    lineHeight: 12,
+    lineHeight: 18,
   },
 });

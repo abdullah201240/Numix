@@ -124,14 +124,14 @@ export default function ContactDetailsScreen() {
 
   if (!contact) {
     return (
-      <View style={[styles.container, { backgroundColor: colors.secondaryBackground }]}>
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
         <Text style={[styles.errorText, { color: colors.textSecondary }]}>Contact not found</Text>
       </View>
     );
   }
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.secondaryBackground }]}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <Stack.Screen
         options={{
           headerRight: () => (

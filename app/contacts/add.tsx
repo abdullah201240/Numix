@@ -23,7 +23,7 @@ export default function AddContactScreen() {
   }, [router]);
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.secondaryBackground }]}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <Stack.Screen
         options={{
           title: 'New Contact',

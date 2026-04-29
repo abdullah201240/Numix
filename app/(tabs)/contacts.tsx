@@ -145,7 +145,7 @@ export default function ContactsListScreen() {
     ({ item }: { item: ListItem }) => {
       if (item.type === 'header') {
         return (
-          <View style={[styles.sectionHeader, { backgroundColor: colors.secondaryBackground }]}>
+          <View style={[styles.sectionHeader, { backgroundColor: colors.background }]}>
             <Text style={[styles.sectionHeaderText, { color: colors.textSecondary }]}>
               {item.letter}
             </Text>
@@ -190,7 +190,7 @@ export default function ContactsListScreen() {
 
   if (loading && contacts.length === 0) {
     return (
-      <View style={[styles.loadingContainer, { backgroundColor: colors.secondaryBackground, paddingTop: insets.top }]}>
+      <View style={[styles.loadingContainer, { backgroundColor: colors.background, paddingTop: insets.top }]}>
         <ActivityIndicator size="large" color={colors.tint} />
       </View>
     );
@@ -198,7 +198,7 @@ export default function ContactsListScreen() {
 
   if (error && contacts.length === 0) {
     return (
-      <View style={[styles.loadingContainer, { backgroundColor: colors.secondaryBackground, paddingTop: insets.top }]}>
+      <View style={[styles.loadingContainer, { backgroundColor: colors.background, paddingTop: insets.top }]}>
         <Text style={[styles.errorText, { color: colors.textSecondary }]}>{error}</Text>
       </View>
     );
@@ -207,7 +207,7 @@ export default function ContactsListScreen() {
   const data = buildListData();
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.secondaryBackground }]}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top + 4 }]}>
         <View style={styles.headerTop}>
@@ -228,13 +228,7 @@ export default function ContactsListScreen() {
           placeholder="Search"
         />
 
-        <View style={styles.statsRow}>
-          <Text style={[styles.statsText, { color: colors.textSecondary }]}>
-            {searchQuery
-              ? `${filteredContacts.length} result${filteredContacts.length !== 1 ? 's' : ''}`
-              : `${totalContacts} Contacts`}
-          </Text>
-        </View>
+
       </View>
 
       {/* List */}
@@ -339,7 +333,7 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   headerTitle: {
-    fontSize: 34,
+    fontSize: 30,
     fontWeight: '700',
     letterSpacing: 0.37,
   },

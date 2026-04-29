@@ -10,7 +10,7 @@ export const ContactListSection: React.FC<ContactListSectionProps> = ({ title })
   const { colors } = useTheme();
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.secondaryBackground }]}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <Text style={[styles.title, { color: colors.textSecondary }]}>{title}</Text>
     </View>
   );

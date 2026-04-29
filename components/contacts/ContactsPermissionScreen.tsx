@@ -48,7 +48,7 @@ export const ContactsPermissionScreen: React.FC<ContactsPermissionScreenProps> =
   const content = getContent();
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.secondaryBackground }]}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={[styles.iconContainer, { backgroundColor: colors.tintLight }]}>
         <Ionicons name={content.icon} size={48} color={colors.tint} />
       </View>

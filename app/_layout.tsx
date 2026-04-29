@@ -58,7 +58,7 @@ function RootLayoutNav() {
       colors: {
         ...navigationTheme.colors,
         primary: colors.tint,
-        background: colors.secondaryBackground,
+        background: colors.background,
         card: colors.card,
         text: colors.textPrimary,
         border: colors.divider,
