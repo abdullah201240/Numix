@@ -2,22 +2,22 @@ import { Ionicons } from '@expo/vector-icons';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useCallback } from 'react';
 import {
-  Alert,
-  Linking,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
+    Alert,
+    Linking,
+    Pressable,
+    ScrollView,
+    StyleSheet,
+    Text,
+    View,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withSpring,
+    useAnimatedStyle,
+    useSharedValue,
+    withSpring,
 } from 'react-native-reanimated';
-import { useTheme } from '../../contexts/ThemeContext';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ContactAvatar } from '../../components/contacts/ContactAvatar';
+import { useTheme } from '../../contexts/ThemeContext';
 import { useContactsStore } from '../../store/contactsStore';
 import { useRecentsStore } from '../../store/recentsStore';
 import { EMAIL_LABELS, PHONE_LABELS } from '../../types/contact';
@@ -28,10 +28,10 @@ export default function ContactDetailsScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
-  
+
   const { getContactById, toggleFavorite, deleteContact } = useContactsStore();
   const { addRecent } = useRecentsStore();
-  
+
   const contact = getContactById(id);
   const fullName = contact ? getFullName(contact) : '';
 
@@ -124,14 +124,14 @@ export default function ContactDetailsScreen() {
 
   if (!contact) {
     return (
-      <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <View style={[styles.container, { backgroundColor: colors.secondaryBackground }]}>
         <Text style={[styles.errorText, { color: colors.textSecondary }]}>Contact not found</Text>
       </View>
     );
   }
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <View style={[styles.container, { backgroundColor: colors.secondaryBackground }]}>
       <Stack.Screen
         options={{
           headerRight: () => (
@@ -142,13 +142,14 @@ export default function ContactDetailsScreen() {
           headerBackTitle: 'Contacts',
         }}
       />
-      
+
       <ScrollView
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}
+        contentContainerStyle={{ paddingBottom: insets.bottom + 40 }}
       >
-        <View style={[styles.header, { backgroundColor: colors.background }]}>
+        {/* Avatar & Name Header */}
+        <View style={styles.header}>
           <ContactAvatar
             firstName={contact.firstName}
             lastName={contact.lastName}
@@ -160,61 +161,51 @@ export default function ContactDetailsScreen() {
           )}
         </View>
 
-        <View style={[styles.actionsRow, { backgroundColor: colors.background }]}>
-          <Pressable 
-            style={[styles.actionButton, { backgroundColor: colors.tertiaryBackground }]}
-            onPress={handleCall}
-          >
-            <View style={[styles.actionIcon, { backgroundColor: colors.green }]}>
-              <Ionicons name="call" size={20} color="#FFFFFF" />
-            </View>
-            <Text style={[styles.actionLabel, { color: colors.textPrimary }]}>Call</Text>
-          </Pressable>
-
-          <Pressable 
-            style={[styles.actionButton, { backgroundColor: colors.tertiaryBackground }]}
-            onPress={handleMessage}
-          >
-            <View style={[styles.actionIcon, { backgroundColor: colors.teal }]}>
-              <Ionicons name="chatbubbles" size={20} color="#FFFFFF" />
-            </View>
-            <Text style={[styles.actionLabel, { color: colors.textPrimary }]}>Message</Text>
-          </Pressable>
-
-          <Pressable 
-            style={[styles.actionButton, { backgroundColor: colors.tertiaryBackground }]}
-            onPress={handleMail}
-          >
-            <View style={[styles.actionIcon, { backgroundColor: colors.tint }]}>
-              <Ionicons name="mail" size={20} color="#FFFFFF" />
-            </View>
-            <Text style={[styles.actionLabel, { color: colors.textPrimary }]}>Mail</Text>
-          </Pressable>
-
-          <Pressable 
-            style={[styles.actionButton, { backgroundColor: colors.tertiaryBackground }]}
-            onPress={handleHeartPress}
-          >
-            <Animated.View style={heartAnimatedStyle}>
-              <View style={[styles.actionIcon, { backgroundColor: contact.isFavorite ? colors.starActive : colors.textSecondary }]}>
-                <Ionicons 
-                  name={contact.isFavorite ? "star" : "star-outline"} 
-                  size={20} 
-                  color="#FFFFFF"
-                />
+        {/* Quick Actions */}
+        <View style={[styles.actionsCard, { backgroundColor: colors.card }]}>
+          <View style={styles.actionsRow}>
+            <Pressable style={styles.actionButton} onPress={handleCall}>
+              <View style={[styles.actionIcon, { backgroundColor: colors.green }]}>
+                <Ionicons name="call" size={18} color="#FFFFFF" />
               </View>
-            </Animated.View>
-            <Text style={[styles.actionLabel, { color: colors.textPrimary }]}>Favorite</Text>
-          </Pressable>
+              <Text style={[styles.actionLabel, { color: colors.tint }]}>Call</Text>
+            </Pressable>
+
+            <Pressable style={styles.actionButton} onPress={handleMessage}>
+              <View style={[styles.actionIcon, { backgroundColor: colors.green }]}>
+                <Ionicons name="chatbubbles" size={18} color="#FFFFFF" />
+              </View>
+              <Text style={[styles.actionLabel, { color: colors.tint }]}>Message</Text>
+            </Pressable>
+
+            <Pressable style={styles.actionButton} onPress={handleMail}>
+              <View style={[styles.actionIcon, { backgroundColor: colors.green }]}>
+                <Ionicons name="mail" size={18} color="#FFFFFF" />
+              </View>
+              <Text style={[styles.actionLabel, { color: colors.tint }]}>Mail</Text>
+            </Pressable>
+
+            <Pressable style={styles.actionButton} onPress={handleHeartPress}>
+              <Animated.View style={heartAnimatedStyle}>
+                <View style={[styles.actionIcon, { backgroundColor: contact.isFavorite ? colors.starActive : colors.textSecondary }]}>
+                  <Ionicons
+                    name={contact.isFavorite ? 'star' : 'star-outline'}
+                    size={18}
+                    color="#FFFFFF"
+                  />
+                </View>
+              </Animated.View>
+              <Text style={[styles.actionLabel, { color: colors.tint }]}>
+                {contact.isFavorite ? 'Unstar' : 'Star'}
+              </Text>
+            </Pressable>
+          </View>
         </View>
 
-        <View style={styles.divider} />
-
+        {/* Phone Numbers */}
         {contact.phones.length > 0 && (
-          <View style={[styles.section]}>
-            <Text style={[styles.sectionHeader, { color: colors.textSecondary }]}>
-              phone
-            </Text>
+          <View style={styles.section}>
+            <Text style={[styles.sectionHeader, { color: colors.textSecondary }]}>phone</Text>
             <View style={[styles.card, { backgroundColor: colors.card }]}>
               {contact.phones.map((phone, index) => (
                 <Pressable
@@ -223,14 +214,13 @@ export default function ContactDetailsScreen() {
                   onPress={() => handlePhonePress(phone.number)}
                 >
                   <View style={styles.rowContent}>
+                    <Text style={[styles.rowValue, { color: colors.tint }]}>
+                      {phone.number}
+                    </Text>
                     <Text style={[styles.rowLabel, { color: colors.textSecondary }]}>
                       {getPhoneLabelDisplay(phone.label)}
                     </Text>
-                    <Text style={[styles.rowValue, { color: colors.textPrimary }]}>
-                      {phone.number}
-                    </Text>
                   </View>
-                  <Ionicons name="call" size={22} color={colors.green} />
                   {index < contact.phones.length - 1 && (
                     <View style={[styles.rowDivider, { backgroundColor: colors.divider }]} />
                   )}
@@ -240,11 +230,10 @@ export default function ContactDetailsScreen() {
           </View>
         )}
 
+        {/* Emails */}
         {contact.emails.length > 0 && (
           <View style={styles.section}>
-            <Text style={[styles.sectionHeader, { color: colors.textSecondary }]}>
-              email
-            </Text>
+            <Text style={[styles.sectionHeader, { color: colors.textSecondary }]}>email</Text>
             <View style={[styles.card, { backgroundColor: colors.card }]}>
               {contact.emails.map((email, index) => (
                 <Pressable
@@ -253,14 +242,13 @@ export default function ContactDetailsScreen() {
                   onPress={() => handleEmailPress(email.email)}
                 >
                   <View style={styles.rowContent}>
+                    <Text style={[styles.rowValue, { color: colors.tint }]}>
+                      {email.email}
+                    </Text>
                     <Text style={[styles.rowLabel, { color: colors.textSecondary }]}>
                       {getEmailLabelDisplay(email.label)}
                     </Text>
-                    <Text style={[styles.rowValue, { color: colors.textPrimary }]}>
-                      {email.email}
-                    </Text>
                   </View>
-                  <Ionicons name="mail" size={22} color={colors.tint} />
                   {index < contact.emails.length - 1 && (
                     <View style={[styles.rowDivider, { backgroundColor: colors.divider }]} />
                   )}
@@ -270,29 +258,26 @@ export default function ContactDetailsScreen() {
           </View>
         )}
 
+        {/* Address */}
         {contact.address && (
           <View style={styles.section}>
-            <Text style={[styles.sectionHeader, { color: colors.textSecondary }]}>
-              address
-            </Text>
+            <Text style={[styles.sectionHeader, { color: colors.textSecondary }]}>address</Text>
             <View style={[styles.card, { backgroundColor: colors.card }]}>
               <View style={styles.row}>
                 <View style={styles.rowContent}>
-                  <Text style={[styles.rowValue, { color: colors.textPrimary }]}>
+                  <Text style={[styles.rowValue, { color: colors.tint }]}>
                     {contact.address}
                   </Text>
                 </View>
-                <Ionicons name="location" size={22} color={colors.tint} />
               </View>
             </View>
           </View>
         )}
 
+        {/* Notes */}
         {contact.notes && (
           <View style={styles.section}>
-            <Text style={[styles.sectionHeader, { color: colors.textSecondary }]}>
-              notes
-            </Text>
+            <Text style={[styles.sectionHeader, { color: colors.textSecondary }]}>notes</Text>
             <View style={[styles.card, { backgroundColor: colors.card }]}>
               <View style={styles.notesRow}>
                 <Text style={[styles.notesText, { color: colors.textPrimary }]}>
@@ -303,9 +288,10 @@ export default function ContactDetailsScreen() {
           </View>
         )}
 
-        <View style={[styles.deleteSection, { backgroundColor: colors.background }]}>
-          <Pressable 
-            style={[styles.deleteButton]} 
+        {/* Delete */}
+        <View style={styles.section}>
+          <Pressable
+            style={[styles.deleteButton, { backgroundColor: colors.card }]}
             onPress={handleDelete}
           >
             <Text style={[styles.deleteButtonText, { color: colors.red }]}>Delete Contact</Text>
@@ -326,64 +312,62 @@ const styles = StyleSheet.create({
   header: {
     alignItems: 'center',
     paddingTop: 20,
-    paddingBottom: 24,
+    paddingBottom: 16,
   },
   name: {
-    fontSize: 28,
+    fontSize: 26,
     fontWeight: '700',
-    letterSpacing: 0.4,
-    marginTop: 16,
+    letterSpacing: 0.36,
+    marginTop: 12,
     textAlign: 'center',
   },
   company: {
     fontSize: 17,
-    marginTop: 4,
+    fontWeight: '400',
+    letterSpacing: -0.41,
+    marginTop: 2,
+  },
+  actionsCard: {
+    marginHorizontal: 16,
+    borderRadius: 11,
+    marginBottom: 32,
   },
   actionsRow: {
     flexDirection: 'row',
-    justifyContent: 'center',
-    paddingVertical: 16,
-    paddingHorizontal: 16,
-    gap: 12,
+    justifyContent: 'space-around',
+    paddingVertical: 14,
+    paddingHorizontal: 8,
   },
   actionButton: {
     alignItems: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 14,
-    borderRadius: 12,
-    minWidth: 70,
+    gap: 6,
   },
   actionIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 6,
   },
   actionLabel: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '500',
+    letterSpacing: 0.07,
   },
   editButton: {
     fontSize: 17,
-    fontWeight: '500',
-  },
-  divider: {
-    height: StyleSheet.hairlineWidth,
-    backgroundColor: 'rgba(128, 128, 128, 0.3)',
-    marginHorizontal: 16,
-    marginBottom: 24,
+    fontWeight: '400',
+    letterSpacing: -0.41,
   },
   section: {
-    marginBottom: 24,
+    marginBottom: 8,
   },
   sectionHeader: {
     fontSize: 13,
     fontWeight: '600',
-    letterSpacing: 0.5,
-    marginBottom: 8,
-    marginLeft: 16,
+    letterSpacing: -0.08,
+    marginBottom: 6,
+    marginLeft: 32,
     textTransform: 'lowercase',
   },
   card: {
@@ -392,23 +376,24 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   row: {
-    flexDirection: 'row',
-    alignItems: 'center',
     paddingHorizontal: 16,
-    paddingVertical: 13,
-    minHeight: 58,
+    paddingVertical: 11,
+    minHeight: 44,
+    justifyContent: 'center',
   },
   rowContent: {
     flex: 1,
   },
   rowLabel: {
-    fontSize: 13,
-    fontWeight: '500',
-    marginBottom: 2,
+    fontSize: 12,
+    fontWeight: '400',
+    letterSpacing: -0.08,
+    marginTop: 2,
   },
   rowValue: {
     fontSize: 17,
     fontWeight: '400',
+    letterSpacing: -0.41,
   },
   rowDivider: {
     position: 'absolute',
@@ -419,10 +404,12 @@ const styles = StyleSheet.create({
   },
   notesRow: {
     paddingHorizontal: 16,
-    paddingVertical: 13,
+    paddingVertical: 11,
   },
   notesText: {
     fontSize: 17,
+    fontWeight: '400',
+    letterSpacing: -0.41,
     lineHeight: 24,
   },
   errorText: {
@@ -430,19 +417,15 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 100,
   },
-  deleteSection: {
-    marginTop: 20,
-    paddingHorizontal: 16,
-    paddingBottom: 24,
-  },
   deleteButton: {
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 69, 58, 0.12)',
-    paddingVertical: 14,
+    paddingVertical: 13,
     borderRadius: 11,
+    marginHorizontal: 16,
   },
   deleteButtonText: {
     fontSize: 17,
-    fontWeight: '500',
+    fontWeight: '400',
+    letterSpacing: -0.41,
   },
 });

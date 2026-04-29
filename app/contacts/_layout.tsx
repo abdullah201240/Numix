@@ -3,13 +3,10 @@ import { useTheme } from '../../contexts/ThemeContext';
 
 export default function ContactsStackLayout() {
   const { colors } = useTheme();
-  
+
   return (
     <Stack
       screenOptions={{
-        headerStyle: {
-          backgroundColor: colors.background,
-        },
         headerTintColor: colors.tint,
         headerTitleStyle: {
           fontWeight: '600',
@@ -18,7 +15,13 @@ export default function ContactsStackLayout() {
         },
         headerShadowVisible: false,
         contentStyle: {
-          backgroundColor: colors.background,
+          backgroundColor: colors.secondaryBackground,
+        },
+        headerStyle: {
+          backgroundColor: colors.secondaryBackground,
+        },
+        headerBackTitleStyle: {
+          fontSize: 17,
         },
       }}
     >
@@ -26,7 +29,6 @@ export default function ContactsStackLayout() {
         name="[id]"
         options={{
           title: '',
-          headerTransparent: false,
           headerBackTitle: 'Contacts',
         }}
       />
@@ -35,7 +37,6 @@ export default function ContactsStackLayout() {
         options={{
           title: 'New Contact',
           presentation: 'modal',
-          headerLeft: () => null,
         }}
       />
       <Stack.Screen

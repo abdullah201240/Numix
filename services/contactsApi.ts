@@ -24,8 +24,7 @@ export const checkContactsPermission = async (): Promise<PermissionResult> => {
       status: status as PermissionResult['status'],
       canAskAgain,
     };
-  } catch (error) {
-    console.error('checkContactsPermission error:', error);
+  } catch {
     return { granted: false, status: 'denied', canAskAgain: false };
   }
 };
@@ -38,18 +37,14 @@ export const requestContactsPermission = async (): Promise<PermissionResult> => 
       status: status as PermissionResult['status'],
       canAskAgain,
     };
-  } catch (error) {
-    console.error('requestContactsPermission error:', error);
+  } catch {
     return { granted: false, status: 'denied', canAskAgain: false };
   }
 };
 
 export const fetchPhoneContacts = async (): Promise<ContactsFetchResult> => {
   try {
-    console.log('[ContactsAPI] Starting fetch...');
-    
     const permission = await checkContactsPermission();
-    console.log('[ContactsAPI] Permission:', permission);
     
     if (!permission.granted) {
       return {
@@ -63,8 +58,6 @@ export const fetchPhoneContacts = async (): Promise<ContactsFetchResult> => {
         skippedCount: 0,
       };
     }
-
-    console.log('[ContactsAPI] Fetching contacts...');
     
     const result = await Contacts.getContactsAsync({
       fields: [
@@ -77,10 +70,7 @@ export const fetchPhoneContacts = async (): Promise<ContactsFetchResult> => {
       ],
     });
 
-    console.log('[ContactsAPI] Raw result:', result);
-
     const rawContacts = result?.data ?? [];
-    console.log('[ContactsAPI] Raw contacts count:', rawContacts.length);
 
     if (rawContacts.length === 0) {
       return {
@@ -133,8 +123,6 @@ export const fetchPhoneContacts = async (): Promise<ContactsFetchResult> => {
         };
       });
 
-    console.log('[ContactsAPI] Mapped contacts:', contacts.length);
-
     return {
       success: true,
       contacts,
@@ -142,7 +130,6 @@ export const fetchPhoneContacts = async (): Promise<ContactsFetchResult> => {
       skippedCount,
     };
   } catch (error) {
-    console.error('[ContactsAPI] Error:', error);
     return {
       success: false,
       error: error instanceof Error ? error : new Error('Failed to fetch contacts'),

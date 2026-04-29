@@ -8,9 +8,9 @@ interface ContactListSectionProps {
 
 export const ContactListSection: React.FC<ContactListSectionProps> = ({ title }) => {
   const { colors } = useTheme();
-  
+
   return (
-    <View style={[styles.container, { backgroundColor: colors.tertiaryBackground }]}>
+    <View style={[styles.container, { backgroundColor: colors.secondaryBackground }]}>
       <Text style={[styles.title, { color: colors.textSecondary }]}>{title}</Text>
     </View>
   );
@@ -19,14 +19,13 @@ export const ContactListSection: React.FC<ContactListSectionProps> = ({ title })
 const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 16,
-    paddingVertical: 6,
+    paddingVertical: 4,
     height: 28,
-    justifyContent: 'center',
+    justifyContent: 'flex-end',
   },
   title: {
     fontSize: 13,
     fontWeight: '600',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    letterSpacing: -0.08,
   },
 });

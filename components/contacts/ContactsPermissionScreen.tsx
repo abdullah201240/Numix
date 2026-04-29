@@ -1,6 +1,6 @@
+import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { Linking, Pressable, StyleSheet, Text, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../contexts/ThemeContext';
 
 type PermissionStatus = 'undetermined' | 'denied' | 'granted' | 'restricted';
@@ -23,7 +23,7 @@ export const ContactsPermissionScreen: React.FC<ContactsPermissionScreenProps> =
       return {
         icon: 'shield-outline' as const,
         title: 'Contacts Access Denied',
-        subtitle: 'Numix needs access to your contacts. Please enable in Settings app.',
+        subtitle: 'Numix needs access to your contacts. Please enable in Settings.',
         buttonText: 'Open Settings',
       };
     }
@@ -40,7 +40,7 @@ export const ContactsPermissionScreen: React.FC<ContactsPermissionScreenProps> =
     return {
       icon: 'person-add-outline' as const,
       title: 'Access Your Contacts',
-      subtitle: 'Numix needs permission to access your contacts to display and manage them.',
+      subtitle: 'Allow Numix to access your contacts to display and manage them.',
       buttonText: 'Allow Access',
     };
   };
@@ -48,9 +48,9 @@ export const ContactsPermissionScreen: React.FC<ContactsPermissionScreenProps> =
   const content = getContent();
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <View style={[styles.container, { backgroundColor: colors.secondaryBackground }]}>
       <View style={[styles.iconContainer, { backgroundColor: colors.tintLight }]}>
-        <Ionicons name={content.icon} size={64} color={colors.tint} />
+        <Ionicons name={content.icon} size={48} color={colors.tint} />
       </View>
 
       <Text style={[styles.title, { color: colors.textPrimary }]}>{content.title}</Text>
@@ -61,7 +61,7 @@ export const ContactsPermissionScreen: React.FC<ContactsPermissionScreenProps> =
         onPress={permissionStatus === 'denied' ? Linking.openSettings : onRequestPermission}
         disabled={isChecking}
       >
-        <Text style={[styles.buttonText, { color: colors.background }]}>{content.buttonText}</Text>
+        <Text style={[styles.buttonText, { color: '#FFFFFF' }]}>{content.buttonText}</Text>
       </Pressable>
     </View>
   );
@@ -75,29 +75,33 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   iconContainer: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
+    width: 96,
+    height: 96,
+    borderRadius: 48,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 24,
   },
   title: {
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: '700',
+    letterSpacing: 0.36,
     textAlign: 'center',
-    marginBottom: 12,
+    marginBottom: 8,
   },
   subtitle: {
     fontSize: 17,
+    fontWeight: '400',
+    letterSpacing: -0.41,
     textAlign: 'center',
-    marginBottom: 20,
-    paddingHorizontal: 20,
+    marginBottom: 24,
+    paddingHorizontal: 24,
+    lineHeight: 24,
   },
   button: {
-    paddingHorizontal: 40,
-    paddingVertical: 12,
-    borderRadius: 12,
+    paddingHorizontal: 32,
+    paddingVertical: 14,
+    borderRadius: 14,
     minWidth: 200,
     alignItems: 'center',
   },
@@ -107,5 +111,6 @@ const styles = StyleSheet.create({
   buttonText: {
     fontSize: 17,
     fontWeight: '600',
+    letterSpacing: -0.41,
   },
 });

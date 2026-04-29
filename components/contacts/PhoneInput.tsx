@@ -48,19 +48,19 @@ export const PhoneInput: React.FC<PhoneInputProps> = ({ phones, onChange }) => {
   };
 
   return (
-    <View style={styles.container}>
+    <View>
       <View style={[styles.card, { backgroundColor: colors.card }]}>
         {phones.map((phone, index) => (
           <View key={phone.id}>
             <View style={styles.phoneRow}>
-              <Pressable 
-                style={styles.labelButton} 
+              <Pressable
+                style={styles.labelButton}
                 onPress={() => toggleLabels(phone.id)}
               >
-                <Text style={[styles.labelText, { color: colors.tint }]}>
+                <Text style={[styles.labelText, { color: colors.textSecondary }]}>
                   {getLabelDisplay(phone.label)}
                 </Text>
-                <Ionicons name="chevron-down" size={14} color={colors.tint} />
+                <Ionicons name="chevron-down" size={12} color={colors.textTertiary} />
               </Pressable>
               <TextInput
                 style={[styles.input, { color: colors.textPrimary }]}
@@ -75,7 +75,7 @@ export const PhoneInput: React.FC<PhoneInputProps> = ({ phones, onChange }) => {
                 onPress={() => removePhone(phone.id)}
                 hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
               >
-                <Ionicons name="remove-circle-outline" size={22} color={colors.red} />
+                <Ionicons name="remove-circle" size={20} color={colors.red} />
               </Pressable>
             </View>
             {index < phones.length - 1 && (
@@ -84,7 +84,7 @@ export const PhoneInput: React.FC<PhoneInputProps> = ({ phones, onChange }) => {
           </View>
         ))}
       </View>
-      
+
       {showLabels && (
         <View style={[styles.labelsDropdown, { backgroundColor: colors.card }]}>
           {PHONE_LABELS.map((label) => (
@@ -107,45 +107,46 @@ export const PhoneInput: React.FC<PhoneInputProps> = ({ phones, onChange }) => {
         </View>
       )}
 
-      <Pressable 
-        style={[styles.addButton, { backgroundColor: colors.card }]} 
+      <Pressable
+        style={[styles.addButton, { backgroundColor: colors.card }]}
         onPress={addPhone}
       >
-        <Ionicons name="add-circle-outline" size={22} color={colors.tint} />
-        <Text style={[styles.addButtonText, { color: colors.tint }]}>Add Phone</Text>
+        <Ionicons name="add" size={22} color={colors.tint} />
+        <Text style={[styles.addButtonText, { color: colors.tint }]}>add phone</Text>
       </Pressable>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    marginTop: 4,
-    paddingHorizontal: 16,
-  },
   card: {
+    marginHorizontal: 16,
     borderRadius: 11,
     overflow: 'hidden',
   },
   phoneRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 12,
+    paddingVertical: 11,
     paddingHorizontal: 16,
+    minHeight: 44,
   },
   labelButton: {
     flexDirection: 'row',
     alignItems: 'center',
     width: 72,
+    gap: 2,
   },
   labelText: {
     fontSize: 15,
-    fontWeight: '500',
-    marginRight: 4,
+    fontWeight: '400',
+    letterSpacing: -0.24,
   },
   input: {
     flex: 1,
     fontSize: 17,
+    fontWeight: '400',
+    letterSpacing: -0.41,
     paddingVertical: 4,
   },
   removeButton: {
@@ -158,29 +159,34 @@ const styles = StyleSheet.create({
   labelsDropdown: {
     borderRadius: 11,
     marginTop: 8,
+    marginHorizontal: 16,
     overflow: 'hidden',
   },
   labelOption: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 14,
+    paddingVertical: 12,
     paddingHorizontal: 16,
   },
   labelOptionText: {
     fontSize: 17,
+    fontWeight: '400',
+    letterSpacing: -0.41,
   },
   addButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 14,
+    paddingVertical: 11,
     paddingHorizontal: 16,
     marginTop: 8,
+    marginHorizontal: 16,
     borderRadius: 11,
+    gap: 6,
   },
   addButtonText: {
     fontSize: 17,
-    fontWeight: '500',
-    marginLeft: 8,
+    fontWeight: '400',
+    letterSpacing: -0.41,
   },
 });

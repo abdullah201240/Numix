@@ -55,18 +55,14 @@ export const useContactsStore = create<ContactsState>((set, get) => ({
     set({ syncStatus: 'syncing', error: null });
     
     try {
-      console.log('[Store] Checking permission...');
       const permission = await checkContactsPermission();
-      console.log('[Store] Permission result:', permission);
       
       if (!permission.granted) {
         set({ syncStatus: 'idle' });
         return false;
       }
 
-      console.log('[Store] Fetching from phone...');
       const result = await fetchPhoneContacts();
-      console.log('[Store] Fetch result:', result);
       
       if (!result.success) {
         set({ error: result.error?.message || 'Failed to fetch contacts', syncStatus: 'error' });
@@ -86,7 +82,6 @@ export const useContactsStore = create<ContactsState>((set, get) => ({
       
       return true;
     } catch (error) {
-      console.error('[Store] Error:', error);
       const message = error instanceof Error ? error.message : 'Failed to sync contacts';
       set({ error: message, syncStatus: 'error' });
       return false;

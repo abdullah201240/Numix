@@ -6,8 +6,8 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
 
-import { ThemeProvider, useTheme } from '../contexts/ThemeContext';
 import { DarkColors, LightColors } from '../constants/theme';
+import { ThemeProvider, useTheme } from '../contexts/ThemeContext';
 
 export {
   ErrorBoundary
@@ -58,7 +58,7 @@ function RootLayoutNav() {
       colors: {
         ...navigationTheme.colors,
         primary: colors.tint,
-        background: colors.background,
+        background: colors.secondaryBackground,
         card: colors.card,
         text: colors.textPrimary,
         border: colors.divider,

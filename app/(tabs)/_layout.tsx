@@ -1,39 +1,92 @@
-import { StyleSheet, View, Text } from 'react-native';
-import { Tabs } from 'expo-router';
-import { useTheme } from '../../contexts/ThemeContext';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { BlurView } from 'expo-blur';
+import { Tabs } from 'expo-router';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTheme } from '../../contexts/ThemeContext';
 
-interface TabBarIconProps {
-  focusedIcon: string;
-  unfocusedIcon: string;
-  label: string;
-  focused: boolean;
-  color: string;
+interface CustomTabBarProps {
+  state: any;
+  descriptors: any;
+  navigation: any;
+  insets: any;
+  colors: any;
+  isDark: boolean;
 }
 
-const TabBarIcon: React.FC<TabBarIconProps> = ({
-  focusedIcon,
-  unfocusedIcon,
-  label,
-  focused,
-  color,
-}) => {
+const CustomTabBar: React.FC<CustomTabBarProps> = ({ state, descriptors, navigation, insets, colors, isDark }) => {
+  const tabIcons: Record<string, { focused: string; unfocused: string }> = {
+    contacts: { focused: 'people', unfocused: 'people-outline' },
+    favorites: { focused: 'star', unfocused: 'star-outline' },
+    recents: { focused: 'time', unfocused: 'time-outline' },
+  };
+
   return (
-    <View style={styles.tabIconContainer}>
-      <Ionicons 
-        name={focused ? focusedIcon as any : unfocusedIcon as any} 
-        size={26} 
-        color={color}
-      />
+    <View style={[styles.tabBarContainer, { bottom: insets.bottom }]}>
+      <BlurView
+        intensity={isDark ? 70 : 85}
+        tint={isDark ? 'dark' : 'light'}
+        style={styles.tabBarBlur}
+      >
+        <View style={styles.tabBarContent}>
+          {state.routes.map((route: any, index: number) => {
+            const { options } = descriptors[route.key];
+            const label =
+              options.tabBarLabel !== undefined
+                ? options.tabBarLabel
+                : options.title !== undefined
+                ? options.title
+                : route.name;
+
+            const isFocused = state.index === index;
+            const icons = tabIcons[route.name] || { focused: 'ellipse', unfocused: 'ellipse-outline' };
+
+            const onPress = () => {
+              const event = navigation.emit({
+                type: 'tabPress',
+                target: route.key,
+                canPreventDefault: true,
+              });
+              if (!isFocused && !event.defaultPrevented) {
+                navigation.navigate(route.name);
+              }
+            };
+
+            return (
+              <Pressable
+                key={route.key}
+                accessibilityRole="button"
+                accessibilityState={isFocused ? { selected: true } : {}}
+                accessibilityLabel={options.tabBarAccessibilityLabel}
+                onPress={onPress}
+                style={styles.tabButton}
+              >
+                <Ionicons
+                  name={isFocused ? icons.focused as any : icons.unfocused as any}
+                  size={24}
+                  color={isFocused ? colors.tint : colors.textSecondary}
+                />
+                <Text
+                  style={[
+                    styles.tabLabel,
+                    { color: isFocused ? colors.tint : colors.textSecondary },
+                  ]}
+                >
+                  {label}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
+      </BlurView>
     </View>
   );
 };
 
 export default function AppLayout() {
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
-  
+
   return (
     <Tabs
       initialRouteName="contacts"
@@ -41,16 +94,11 @@ export default function AppLayout() {
         tabBarActiveTintColor: colors.tint,
         tabBarInactiveTintColor: colors.textSecondary,
         tabBarStyle: {
-          backgroundColor: colors.tabBar,
-          borderTopWidth: StyleSheet.hairlineWidth,
-          borderTopColor: colors.tabBarBorder,
-          paddingTop: 8,
-          paddingBottom: insets.bottom + 4,
-          height: 50 + insets.bottom,
-        },
-        tabBarLabelStyle: {
-          fontSize: 10,
-          fontWeight: '500',
+          backgroundColor: 'transparent',
+          borderTopWidth: 0,
+          paddingTop: 0,
+          paddingBottom: 0,
+          height: 0,
         },
         headerStyle: {
           backgroundColor: colors.background,
@@ -64,50 +112,31 @@ export default function AppLayout() {
         headerShadowVisible: false,
         headerShown: false,
       }}
+      tabBar={(props) => (
+        <CustomTabBar
+          {...props}
+          insets={insets}
+          colors={colors}
+          isDark={isDark}
+        />
+      )}
     >
       <Tabs.Screen
         name="contacts"
         options={{
           tabBarLabel: 'Contacts',
-          tabBarIcon: ({ color, focused }) => (
-            <TabBarIcon
-              focusedIcon="people"
-              unfocusedIcon="people-outline"
-              label="Contacts"
-              focused={focused}
-              color={color}
-            />
-          ),
         }}
       />
       <Tabs.Screen
         name="favorites"
         options={{
           tabBarLabel: 'Favorites',
-          tabBarIcon: ({ color, focused }) => (
-            <TabBarIcon
-              focusedIcon="star"
-              unfocusedIcon="star-outline"
-              label="Favorites"
-              focused={focused}
-              color={color}
-            />
-          ),
         }}
       />
       <Tabs.Screen
         name="recents"
         options={{
           tabBarLabel: 'Recents',
-          tabBarIcon: ({ color, focused }) => (
-            <TabBarIcon
-              focusedIcon="time"
-              unfocusedIcon="time-outline"
-              label="Recents"
-              focused={focused}
-              color={color}
-            />
-          ),
         }}
       />
     </Tabs>
@@ -115,8 +144,33 @@ export default function AppLayout() {
 }
 
 const styles = StyleSheet.create({
-  tabIconContainer: {
+  tabBarContainer: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+  tabBarBlur: {
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: 'rgba(120, 120, 128, 0.2)',
+  },
+  tabBarContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-around',
+    paddingTop: 6,
+    paddingBottom: 4,
+  },
+  tabButton: {
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    paddingVertical: 2,
+  },
+  tabLabel: {
+    fontSize: 10,
+    fontWeight: '500',
+    marginTop: 3,
+    letterSpacing: -0.24,
   },
 });

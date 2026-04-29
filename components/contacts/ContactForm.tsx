@@ -105,34 +105,37 @@ export const ContactForm: React.FC<ContactFormProps> = ({
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <ScrollView style={styles.scrollView} keyboardShouldPersistTaps="handled">
+        {/* Name */}
         <View style={styles.section}>
           <Text style={[styles.sectionHeader, { color: colors.textSecondary }]}>name</Text>
           <View style={[styles.card, { backgroundColor: colors.card }]}>
             <TextInput
-              style={[styles.input, styles.inputNoBorder, { color: colors.textPrimary }]}
+              style={[styles.input, { color: colors.textPrimary }]}
               value={firstName}
               onChangeText={setFirstName}
-              placeholder="First Name"
+              placeholder="First"
               placeholderTextColor={colors.textTertiary}
               autoCapitalize="words"
             />
             <View style={[styles.inputDivider, { backgroundColor: colors.divider }]} />
             <TextInput
-              style={[styles.input, styles.inputNoBorder, { color: colors.textPrimary }]}
+              style={[styles.input, { color: colors.textPrimary }]}
               value={lastName}
               onChangeText={setLastName}
-              placeholder="Last Name"
+              placeholder="Last"
               placeholderTextColor={colors.textTertiary}
               autoCapitalize="words"
             />
           </View>
         </View>
 
+        {/* Phone */}
         <View style={styles.section}>
           <Text style={[styles.sectionHeader, { color: colors.textSecondary }]}>phone</Text>
           <PhoneInput phones={phones} onChange={setPhones} />
         </View>
 
+        {/* Email */}
         <View style={styles.section}>
           <Text style={[styles.sectionHeader, { color: colors.textSecondary }]}>email</Text>
           <View style={[styles.card, { backgroundColor: colors.card }]}>
@@ -143,10 +146,10 @@ export const ContactForm: React.FC<ContactFormProps> = ({
                     style={styles.labelButton}
                     onPress={() => setShowEmailLabels(showEmailLabels === email.id ? null : email.id)}
                   >
-                    <Text style={[styles.labelText, { color: colors.tint }]}>
+                    <Text style={[styles.labelText, { color: colors.textSecondary }]}>
                       {getLabelDisplay(email.label)}
                     </Text>
-                    <Ionicons name="chevron-down" size={14} color={colors.tint} />
+                    <Ionicons name="chevron-down" size={12} color={colors.textTertiary} />
                   </Pressable>
                   <TextInput
                     style={[styles.emailInput, { color: colors.textPrimary }]}
@@ -161,7 +164,7 @@ export const ContactForm: React.FC<ContactFormProps> = ({
                     onPress={() => removeEmail(email.id)}
                     hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                   >
-                    <Ionicons name="remove-circle-outline" size={22} color={colors.red} />
+                    <Ionicons name="remove-circle" size={20} color={colors.red} />
                   </Pressable>
                 </View>
                 {index < emails.length - 1 && (
@@ -170,7 +173,7 @@ export const ContactForm: React.FC<ContactFormProps> = ({
               </View>
             ))}
           </View>
-          
+
           {showEmailLabels && (
             <View style={[styles.labelsDropdown, { backgroundColor: colors.card }]}>
               {EMAIL_LABELS.map((label) => (
@@ -193,20 +196,21 @@ export const ContactForm: React.FC<ContactFormProps> = ({
             </View>
           )}
 
-          <Pressable 
-            style={[styles.addButton, { backgroundColor: colors.card }]} 
+          <Pressable
+            style={[styles.addButton, { backgroundColor: colors.card }]}
             onPress={addEmail}
           >
-            <Ionicons name="add-circle-outline" size={22} color={colors.tint} />
-            <Text style={[styles.addButtonText, { color: colors.tint }]}>Add Email</Text>
+            <Ionicons name="add" size={22} color={colors.tint} />
+            <Text style={[styles.addButtonText, { color: colors.tint }]}>add email</Text>
           </Pressable>
         </View>
 
+        {/* Company */}
         <View style={styles.section}>
           <Text style={[styles.sectionHeader, { color: colors.textSecondary }]}>company</Text>
           <View style={[styles.card, { backgroundColor: colors.card }]}>
             <TextInput
-              style={[styles.input, styles.inputNoBorder, { color: colors.textPrimary }]}
+              style={[styles.input, { color: colors.textPrimary }]}
               value={company}
               onChangeText={setCompany}
               placeholder="Company"
@@ -216,14 +220,30 @@ export const ContactForm: React.FC<ContactFormProps> = ({
           </View>
         </View>
 
+        {/* Job Title */}
+        <View style={styles.section}>
+          <Text style={[styles.sectionHeader, { color: colors.textSecondary }]}>job title</Text>
+          <View style={[styles.card, { backgroundColor: colors.card }]}>
+            <TextInput
+              style={[styles.input, { color: colors.textPrimary }]}
+              value={jobTitle}
+              onChangeText={setJobTitle}
+              placeholder="Job Title"
+              placeholderTextColor={colors.textTertiary}
+              autoCapitalize="words"
+            />
+          </View>
+        </View>
+
+        {/* Address */}
         <View style={styles.section}>
           <Text style={[styles.sectionHeader, { color: colors.textSecondary }]}>address</Text>
           <View style={[styles.card, { backgroundColor: colors.card }]}>
             <TextInput
-              style={[styles.input, styles.inputNoBorder, { color: colors.textPrimary, minHeight: 44 }]}
+              style={[styles.input, { color: colors.textPrimary, minHeight: 44 }]}
               value={address}
               onChangeText={setAddress}
-              placeholder="Address"
+              placeholder="Street, City, State, ZIP"
               placeholderTextColor={colors.textTertiary}
               multiline
               textAlignVertical="top"
@@ -231,11 +251,12 @@ export const ContactForm: React.FC<ContactFormProps> = ({
           </View>
         </View>
 
+        {/* Notes */}
         <View style={styles.section}>
           <Text style={[styles.sectionHeader, { color: colors.textSecondary }]}>notes</Text>
           <View style={[styles.card, { backgroundColor: colors.card }]}>
             <TextInput
-              style={[styles.input, styles.inputNoBorder, styles.notesInput, { color: colors.textPrimary }]}
+              style={[styles.input, styles.notesInput, { color: colors.textPrimary }]}
               value={notes}
               onChangeText={setNotes}
               placeholder="Notes"
@@ -246,28 +267,20 @@ export const ContactForm: React.FC<ContactFormProps> = ({
           </View>
         </View>
 
+        {/* Delete */}
         {onDelete && (
           <View style={styles.section}>
-            <Pressable 
-              style={[styles.deleteButton, { backgroundColor: colors.card }]} 
+            <Pressable
+              style={[styles.deleteButton, { backgroundColor: colors.card }]}
               onPress={handleDelete}
             >
               <Text style={[styles.deleteButtonText, { color: colors.red }]}>Delete Contact</Text>
             </Pressable>
           </View>
         )}
-        
-        <View style={{ height: 100 }} />
-      </ScrollView>
 
-      <View style={[styles.footer, { backgroundColor: colors.secondaryBackground }]}>
-        <Pressable style={styles.cancelButton} onPress={onCancel}>
-          <Text style={[styles.cancelButtonText, { color: colors.tint }]}>Cancel</Text>
-        </Pressable>
-        <Pressable style={[styles.saveButton, { backgroundColor: colors.tint }]} onPress={handleSave}>
-          <Text style={styles.saveButtonText}>Save</Text>
-        </Pressable>
-      </View>
+        <View style={{ height: 80 }} />
+      </ScrollView>
     </KeyboardAvoidingView>
   );
 };
@@ -280,122 +293,104 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   section: {
-    marginTop: 24,
-    paddingHorizontal: 16,
+    marginTop: 20,
   },
   sectionHeader: {
     fontSize: 13,
     fontWeight: '600',
-    letterSpacing: 0.5,
-    marginBottom: 8,
-    marginLeft: 16,
+    letterSpacing: -0.08,
+    marginBottom: 6,
+    marginLeft: 32,
     textTransform: 'lowercase',
   },
   card: {
+    marginHorizontal: 16,
     borderRadius: 11,
     overflow: 'hidden',
   },
   input: {
     fontSize: 17,
+    fontWeight: '400',
+    letterSpacing: -0.41,
     paddingHorizontal: 16,
-    paddingVertical: 13,
-    minHeight: 48,
-  },
-  inputNoBorder: {
-    borderBottomWidth: 0,
+    paddingVertical: 11,
+    minHeight: 44,
   },
   inputDivider: {
     height: StyleSheet.hairlineWidth,
     marginLeft: 16,
   },
   notesInput: {
-    minHeight: 100,
+    minHeight: 88,
+    lineHeight: 24,
   },
   emailRow: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
-    paddingVertical: 12,
-    minHeight: 50,
+    paddingVertical: 11,
+    minHeight: 44,
   },
   labelButton: {
     flexDirection: 'row',
     alignItems: 'center',
     width: 72,
+    gap: 2,
   },
   labelText: {
     fontSize: 15,
-    fontWeight: '500',
-    marginRight: 4,
+    fontWeight: '400',
+    letterSpacing: -0.24,
   },
   emailInput: {
     flex: 1,
     fontSize: 17,
+    fontWeight: '400',
+    letterSpacing: -0.41,
     paddingVertical: 4,
   },
   labelsDropdown: {
     borderRadius: 11,
     marginTop: 8,
+    marginHorizontal: 16,
     overflow: 'hidden',
   },
   labelOption: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 14,
+    paddingVertical: 12,
     paddingHorizontal: 16,
   },
   labelOptionText: {
     fontSize: 17,
+    fontWeight: '400',
+    letterSpacing: -0.41,
   },
   addButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 14,
+    paddingVertical: 11,
     paddingHorizontal: 16,
     marginTop: 8,
+    marginHorizontal: 16,
     borderRadius: 11,
+    gap: 6,
   },
   addButtonText: {
     fontSize: 17,
-    fontWeight: '500',
-    marginLeft: 8,
+    fontWeight: '400',
+    letterSpacing: -0.41,
   },
   deleteButton: {
     alignItems: 'center',
-    paddingVertical: 14,
+    paddingVertical: 13,
     borderRadius: 11,
-    marginBottom: 16,
+    marginHorizontal: 16,
   },
   deleteButtonText: {
     fontSize: 17,
-    fontWeight: '500',
-  },
-  footer: {
-    flexDirection: 'row',
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    paddingBottom: 34,
-  },
-  cancelButton: {
-    flex: 1,
-    alignItems: 'center',
-    paddingVertical: 14,
-  },
-  cancelButtonText: {
-    fontSize: 17,
-    fontWeight: '500',
-  },
-  saveButton: {
-    flex: 1,
-    alignItems: 'center',
-    paddingVertical: 14,
-    borderRadius: 11,
-    marginLeft: 12,
-  },
-  saveButtonText: {
-    fontSize: 17,
-    fontWeight: '600',
-    color: '#FFFFFF',
+    fontWeight: '400',
+    letterSpacing: -0.41,
   },
 });

@@ -67,7 +67,7 @@ export const LightColors: ThemeColors = {
   
   starActive: '#FF9500',
   starInactive: '#C7C7CC',
-  searchBackground: '#E5E5EA',
+  searchBackground: 'rgba(118, 118, 128, 0.12)',
   
   tabBar: '#F8F8F8',
   tabBarBorder: '#C6C6C8',
@@ -102,7 +102,7 @@ export const DarkColors: ThemeColors = {
   
   starActive: '#FF9F0A',
   starInactive: '#636366',
-  searchBackground: '#1C1C1E',
+  searchBackground: 'rgba(118, 118, 128, 0.24)',
   
   tabBar: '#1C1C1E',
   tabBarBorder: '#38383A',
@@ -247,7 +247,7 @@ export const Colors = {
   
   starActive: '#FF9500',
   starInactive: '#C7C7CC',
-  searchBackground: '#E5E5EA',
+  searchBackground: 'rgba(118, 118, 128, 0.12)',
   
   tabBar: '#F8F8F8',
   tabBarBorder: '#C6C6C8',

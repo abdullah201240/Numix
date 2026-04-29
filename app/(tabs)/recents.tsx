@@ -1,9 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Stack, useRouter } from 'expo-router';
-import React, { useCallback, useEffect, useState } from 'react';
+import { useRouter } from 'expo-router';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   FlatList,
   Pressable,
   RefreshControl,
@@ -12,21 +11,141 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { ContactAvatar } from '../../components/contacts/ContactAvatar';
 import { EmptyState } from '../../components/contacts/EmptyState';
 import { useTheme } from '../../contexts/ThemeContext';
-import { useContactsStore } from '../../store/contactsStore';
 import { useRecentsStore } from '../../store/recentsStore';
 import { RecentCall } from '../../types/contact';
+
+function formatTime(timestamp: number): string {
+  const date = new Date(timestamp);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
+
+  if (diffMins < 1) return 'Just now';
+  if (diffMins < 60) return `${diffMins}m`;
+  if (diffHours < 24) return `${diffHours}h`;
+  if (diffDays === 1) return 'Yesterday';
+  if (diffDays < 7) {
+    return date.toLocaleDateString('en-US', { weekday: 'short' });
+  }
+  return date.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric' });
+}
+
+type ListItem =
+  | { type: 'header'; label: string; key: string }
+  | { type: 'call'; call: RecentCall; key: string };
+
+function groupByDay(recents: RecentCall[]): ListItem[] {
+  const items: ListItem[] = [];
+  let lastDay = '';
+
+  const sorted = [...recents].sort((a, b) => b.timestamp - a.timestamp);
+
+  for (let i = 0; i < sorted.length; i++) {
+    const r = sorted[i];
+    const date = new Date(r.timestamp);
+    const now = new Date();
+    const diffDays = Math.floor((now.getTime() - date.getTime()) / 86400000);
+
+    let dayLabel: string;
+    if (diffDays === 0) dayLabel = 'Today';
+    else if (diffDays === 1) dayLabel = 'Yesterday';
+    else if (diffDays < 7) dayLabel = date.toLocaleDateString('en-US', { weekday: 'long' });
+    else dayLabel = date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+
+    if (dayLabel !== lastDay) {
+      items.push({ type: 'header', label: dayLabel, key: `h-${i}` });
+      lastDay = dayLabel;
+    }
+
+    items.push({ type: 'call', call: r, key: r.id });
+  }
+
+  return items;
+}
+
+const splitName = (name: string) => {
+  const parts = name.trim().split(' ');
+  return parts.length === 1
+    ? { firstName: parts[0], lastName: '' }
+    : { firstName: parts[0], lastName: parts.slice(1).join(' ') };
+};
+
+interface CallRowProps {
+  call: RecentCall;
+  onPress: () => void;
+}
+
+const CallRow = React.memo(({ call, onPress }: CallRowProps) => {
+  const { colors } = useTheme();
+  const name = useMemo(() => splitName(call.contactName), [call.contactName]);
+
+  const callTypeIcon = useMemo(() => {
+    switch (call.type) {
+      case 'missed':
+        return { icon: 'arrow-down' as const, color: colors.red, label: 'Missed' };
+      case 'incoming':
+        return { icon: 'arrow-down' as const, color: colors.green, label: 'Incoming' };
+      case 'outgoing':
+        return { icon: 'arrow-up' as const, color: colors.tint, label: 'Outgoing' };
+      default:
+        return { icon: 'call' as const, color: colors.textTertiary, label: call.type };
+    }
+  }, [call.type, colors]);
+
+  return (
+    <Pressable
+      onPress={onPress}
+      style={[styles.callRow, { backgroundColor: colors.card }]}
+      android_ripple={{ color: 'rgba(120,120,128,0.12)' }}
+    >
+      <ContactAvatar
+        firstName={name.firstName}
+        lastName={name.lastName}
+        size="small"
+      />
+
+      <View style={styles.callInfo}>
+        <Text
+          style={[
+            styles.callName,
+            { color: call.type === 'missed' ? colors.red : colors.textPrimary },
+          ]}
+          numberOfLines={1}
+        >
+          {call.contactName}
+        </Text>
+        <View style={styles.callMeta}>
+          <Ionicons name={callTypeIcon.icon} size={12} color={callTypeIcon.color} />
+          <Text style={[styles.callMetaText, { color: colors.textSecondary }]}>
+            {callTypeIcon.label}
+          </Text>
+        </View>
+      </View>
+
+      <View style={styles.callRight}>
+        <Text style={[styles.callTime, { color: colors.textSecondary }]}>
+          {formatTime(call.timestamp)}
+        </Text>
+        <Ionicons name="chevron-forward" size={16} color={colors.textTertiary} />
+      </View>
+    </Pressable>
+  );
+});
 
 export default function RecentsScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
-  
+
   const { recents, loading, loadRecentsFromStorage, clearRecents } = useRecentsStore();
-  const { getContactById } = useContactsStore();
-  
+
   const [refreshing, setRefreshing] = useState(false);
+  const [missedOnly, setMissedOnly] = useState(false);
 
   useEffect(() => {
     loadRecentsFromStorage();
@@ -38,137 +157,97 @@ export default function RecentsScreen() {
     setRefreshing(false);
   }, [loadRecentsFromStorage]);
 
-  const handleClearRecents = useCallback(() => {
-    Alert.alert(
-      'Clear Recents',
-      'Are you sure you want to clear all recent calls?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Clear All',
-          style: 'destructive',
-          onPress: clearRecents,
-        },
-      ]
-    );
-  }, [clearRecents]);
+  const handlePress = useCallback(
+    (contactId: string) => router.push(`/contacts/${contactId}`),
+    [router]
+  );
 
-  const handleContactPress = useCallback((contactId: string) => {
-    router.push(`/contacts/${contactId}`);
-  }, [router]);
+  const filtered = recents.filter((r) => {
+    return !missedOnly || r.type === 'missed';
+  });
 
-  const getCallIconColor = (type: RecentCall['type']): string => {
-    switch (type) {
-      case 'missed':
-        return colors.red;
-      default:
-        return colors.green;
-    }
-  };
+  const listData = useMemo(() => groupByDay(filtered), [filtered]);
 
-  const formatTime = (timestamp: number): string => {
-    const date = new Date(timestamp);
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMs / 3600000);
-    const diffDays = Math.floor(diffMs / 86400000);
-
-    if (diffMins < 1) return 'Just now';
-    if (diffMins < 60) return `${diffMins}m ago`;
-    if (diffHours < 24) return `${diffHours}h ago`;
-    if (diffDays === 1) return 'Yesterday';
-    if (diffDays < 7) return `${diffDays} days ago`;
-    return date.toLocaleDateString();
-  };
-
-  const formatDuration = (seconds: number): string => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    if (mins === 0) return `${secs}s`;
-    return `${mins}m ${secs}s`;
-  };
-
-  const renderItem = useCallback(({ item }: { item: RecentCall }) => {
-    const contact = getContactById(item.contactId);
-    
-    return (
-      <Pressable
-        style={[styles.item, { backgroundColor: colors.background }]}
-        onPress={() => contact ? handleContactPress(item.contactId) : null}
-      >
-        <View style={[styles.callIndicator, { backgroundColor: getCallIconColor(item.type) }]}>
-          <Ionicons name="call" size={14} color="#FFFFFF" />
-        </View>
-        
-        <View style={styles.itemContent}>
-          <View style={styles.itemRow}>
-            <View style={styles.nameContainer}>
-              <Text style={[styles.name, { color: colors.textPrimary }]} numberOfLines={1}>
-                {item.contactName}
-              </Text>
-              <Text style={[styles.callType, { color: getCallIconColor(item.type) }]}>
-                {item.type.charAt(0).toUpperCase() + item.type.slice(1)}
-              </Text>
-            </View>
-            <View style={styles.rightContent}>
-              <Text style={[styles.time, { color: colors.textSecondary }]}>
-                {formatTime(item.timestamp)}
-              </Text>
-              {item.duration > 0 && (
-                <Text style={[styles.duration, { color: colors.textTertiary }]}>
-                  {formatDuration(item.duration)}
-                </Text>
-              )}
-            </View>
+  const renderItem = useCallback(
+    ({ item }: { item: ListItem }) => {
+      if (item.type === 'header') {
+        return (
+          <View style={[styles.sectionHeader, { backgroundColor: colors.secondaryBackground }]}>
+            <Text style={[styles.sectionHeaderText, { color: colors.textSecondary }]}>
+              {item.label}
+            </Text>
           </View>
-        </View>
-        
-        <Ionicons name="chevron-forward" size={16} color={colors.textTertiary} />
-      </Pressable>
-    );
-  }, [colors, getContactById, handleContactPress]);
+        );
+      }
+      return <CallRow call={item.call} onPress={() => handlePress(item.call.contactId)} />;
+    },
+    [colors, handlePress]
+  );
 
-  const keyExtractor = useCallback((item: RecentCall) => item.id, []);
+  const keyExtractor = useCallback((item: ListItem) => item.key, []);
 
   if (loading && recents.length === 0) {
     return (
-      <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <View style={[styles.container, { backgroundColor: colors.secondaryBackground, paddingTop: insets.top }]}>
         <ActivityIndicator size="large" color={colors.tint} />
       </View>
     );
   }
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <View style={styles.header}>
+    <View style={[styles.container, { backgroundColor: colors.secondaryBackground }]}>
+      {/* Header */}
+      <View style={[styles.header, { paddingTop: insets.top + 4 }]}>
         <View style={styles.headerTop}>
-          <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>
-            Recents
-          </Text>
-          {recents.length > 0 && (
-            <Pressable onPress={handleClearRecents} hitSlop={12} style={styles.clearButton}>
-              <Text style={[styles.clearText, { color: colors.tint }]}>Clear</Text>
-            </Pressable>
-          )}
+          <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>Recents</Text>
+          <View style={styles.headerRight}>
+            {recents.length > 0 && (
+              <Pressable onPress={clearRecents} hitSlop={8}>
+                <Text style={[styles.clearButton, { color: colors.tint }]}>Clear</Text>
+              </Pressable>
+            )}
+          </View>
+        </View>
+
+        {/* Filter pills */}
+        <View style={styles.filterRow}>
+          <Pressable
+            onPress={() => setMissedOnly(false)}
+            style={[
+              styles.filterPill,
+              { backgroundColor: !missedOnly ? colors.tint : colors.tertiaryBackground },
+            ]}
+          >
+            <Text style={[styles.filterPillText, { color: !missedOnly ? '#FFFFFF' : colors.textSecondary }]}>
+              All
+            </Text>
+          </Pressable>
+          <Pressable
+            onPress={() => setMissedOnly(true)}
+            style={[
+              styles.filterPill,
+              { backgroundColor: missedOnly ? colors.red : colors.tertiaryBackground },
+            ]}
+          >
+            <Text style={[styles.filterPillText, { color: missedOnly ? '#FFFFFF' : colors.textSecondary }]}>
+              Missed
+            </Text>
+          </Pressable>
         </View>
       </View>
-      
-      {recents.length === 0 ? (
-        <EmptyState
-          title="No Recents"
-          subtitle="Your recent calls will appear here"
-          icon="time-outline"
-        />
+
+      {filtered.length === 0 ? (
+        missedOnly ? (
+          <EmptyState title="No Missed Calls" subtitle="No missed calls" icon="call-outline" />
+        ) : (
+          <EmptyState title="No Recents" subtitle="Your call history will appear here" icon="call-outline" />
+        )
       ) : (
         <FlatList
-          data={recents}
+          data={listData}
           renderItem={renderItem}
           keyExtractor={keyExtractor}
-          contentContainerStyle={[
-            styles.listContent,
-            { paddingBottom: insets.bottom + 60 },
-          ]}
+          contentContainerStyle={{ paddingBottom: insets.bottom + 60 }}
           refreshControl={
             <RefreshControl
               refreshing={refreshing}
@@ -177,9 +256,6 @@ export default function RecentsScreen() {
             />
           }
           showsVerticalScrollIndicator={false}
-          initialNumToRender={30}
-          maxToRenderPerBatch={20}
-          windowSize={10}
         />
       )}
     </View>
@@ -191,71 +267,98 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    paddingHorizontal: 16,
-    paddingTop: 8,
-    paddingBottom: 8,
+    paddingHorizontal: 0,
   },
   headerTop: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    paddingBottom: 8,
   },
   headerTitle: {
     fontSize: 34,
     fontWeight: '700',
-    letterSpacing: 0.4,
+    letterSpacing: 0.37,
+  },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   clearButton: {
-    padding: 4,
-  },
-  clearText: {
     fontSize: 17,
+    fontWeight: '400',
+    letterSpacing: -0.41,
+  },
+  filterRow: {
+    flexDirection: 'row',
+    paddingHorizontal: 16,
+    paddingBottom: 10,
+    gap: 8,
+  },
+  filterPill: {
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 16,
+  },
+  filterPillText: {
+    fontSize: 14,
     fontWeight: '500',
+    letterSpacing: -0.15,
   },
-  listContent: {
-    paddingBottom: 16,
+  sectionHeader: {
+    paddingHorizontal: 16,
+    paddingVertical: 6,
+    height: 28,
+    justifyContent: 'flex-end',
   },
-  item: {
+  sectionHeaderText: {
+    fontSize: 13,
+    fontWeight: '600',
+    letterSpacing: -0.08,
+    textTransform: 'uppercase',
+  },
+  callRow: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingVertical: 10,
   },
-  callIndicator: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  itemContent: {
+  callInfo: {
     flex: 1,
     marginLeft: 12,
+    justifyContent: 'center',
   },
-  itemRow: {
+  callName: {
+    fontSize: 17,
+    fontWeight: '400',
+    letterSpacing: -0.41,
+  },
+  callMeta: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    gap: 4,
+    marginTop: 2,
   },
-  nameContainer: {
+  callMetaText: {
+    fontSize: 13,
+    fontWeight: '400',
+    letterSpacing: -0.08,
+  },
+  callRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  callTime: {
+    fontSize: 15,
+    fontWeight: '400',
+    letterSpacing: -0.24,
+  },
+  loadingContainer: {
     flex: 1,
-  },
-  name: {
-    fontSize: 17,
-    fontWeight: '500',
-  },
-  callType: {
-    fontSize: 12,
-    marginTop: 2,
-  },
-  rightContent: {
-    alignItems: 'flex-end',
-  },
-  time: {
-    fontSize: 12,
-  },
-  duration: {
-    fontSize: 11,
-    marginTop: 2,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
