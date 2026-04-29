@@ -1,7 +1,8 @@
 import React from 'react';
 import { Image, StyleSheet, Text, View } from 'react-native';
-import { AvatarSizes, Colors, getAvatarColor } from '../../constants/theme';
+import { getAvatarColor } from '../../constants/theme';
 import { getInitialsFromName } from '../../utils/contacts';
+import { useTheme } from '../../contexts/ThemeContext';
 
 interface ContactAvatarProps {
   firstName: string;
@@ -11,10 +12,10 @@ interface ContactAvatarProps {
 }
 
 const sizeMap = {
-  small: AvatarSizes.small,
-  medium: AvatarSizes.medium,
-  large: AvatarSizes.large,
-  xlarge: AvatarSizes.xlarge,
+  small: 40,
+  medium: 60,
+  large: 100,
+  xlarge: 120,
 };
 
 export const ContactAvatar: React.FC<ContactAvatarProps> = ({
@@ -23,6 +24,7 @@ export const ContactAvatar: React.FC<ContactAvatarProps> = ({
   size = 'medium',
   imageUrl,
 }) => {
+  const { colors } = useTheme();
   const dimensions = sizeMap[size];
   const initials = getInitialsFromName(firstName, lastName);
   const fullName = `${firstName} ${lastName}`.trim();
@@ -58,7 +60,9 @@ export const ContactAvatar: React.FC<ContactAvatarProps> = ({
         },
       ]}
     >
-      <Text style={[styles.initials, { fontSize }]}>{initials}</Text>
+      <Text style={[styles.initials, { fontSize, color: colors.background }]}>
+        {initials}
+      </Text>
     </View>
   );
 };
@@ -69,7 +73,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   initials: {
-    color: Colors.background,
     fontWeight: '600',
     letterSpacing: 0.5,
   },

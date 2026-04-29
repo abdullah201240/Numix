@@ -13,7 +13,8 @@ import Animated, {
     useSharedValue,
     withTiming
 } from 'react-native-reanimated';
-import { BorderRadius, Colors, SEARCH_BAR_HEIGHT, Spacing, Typography } from '../../constants/theme';
+import { useTheme } from '../../contexts/ThemeContext';
+import { Typography } from '../../constants/theme';
 
 interface SearchBarProps {
   value: string;
@@ -26,6 +27,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
   onChangeText,
   placeholder = 'Search',
 }) => {
+  const { colors } = useTheme();
   const [isFocused, setIsFocused] = useState(false);
   const inputRef = useRef<TextInput>(null);
   const cancelWidth = useSharedValue(0);
@@ -61,21 +63,21 @@ export const SearchBar: React.FC<SearchBarProps> = ({
   }));
 
   return (
-    <View style={styles.container}>
-      <View style={styles.searchContainer}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <View style={[styles.searchContainer, { backgroundColor: colors.searchBackground }]}>
         <Ionicons
           name="search"
           size={16}
-          color={Colors.textSecondary}
+          color={colors.textSecondary}
           style={styles.searchIcon}
         />
         <TextInput
           ref={inputRef}
-          style={styles.input}
+          style={[styles.input, { color: colors.textPrimary }]}
           value={value}
           onChangeText={onChangeText}
           placeholder={placeholder}
-          placeholderTextColor={Colors.textSecondary}
+          placeholderTextColor={colors.textSecondary}
           onFocus={handleFocus}
           onBlur={handleBlur}
           returnKeyType="search"
@@ -85,14 +87,14 @@ export const SearchBar: React.FC<SearchBarProps> = ({
         {value.length > 0 && (
           <Pressable onPress={handleClear} hitSlop={8}>
             <View style={styles.clearButton}>
-              <Ionicons name="close-circle" size={16} color={Colors.textSecondary} />
+              <Ionicons name="close-circle" size={16} color={colors.textSecondary} />
             </View>
           </Pressable>
         )}
       </View>
       <Animated.View style={[styles.cancelContainer, cancelStyle]}>
         <Pressable onPress={handleCancel}>
-          <Text style={styles.cancelText}>Cancel</Text>
+          <Text style={[styles.cancelText, { color: colors.tint }]}>Cancel</Text>
         </Pressable>
       </Animated.View>
     </View>
@@ -103,31 +105,28 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.sm,
-    backgroundColor: Colors.background,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
   },
   searchContainer: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.searchBackground,
-    borderRadius: BorderRadius.medium,
-    height: SEARCH_BAR_HEIGHT,
-    paddingHorizontal: Spacing.sm,
+    borderRadius: 8,
+    height: 36,
+    paddingHorizontal: 8,
   },
   searchIcon: {
-    marginRight: Spacing.xs,
+    marginRight: 4,
   },
   input: {
     flex: 1,
     ...Typography.body,
-    color: Colors.textPrimary,
     padding: 0,
-    height: SEARCH_BAR_HEIGHT,
+    height: 36,
   },
   clearButton: {
-    padding: Spacing.xs,
+    padding: 4,
   },
   cancelContainer: {
     overflow: 'hidden',
@@ -136,7 +135,6 @@ const styles = StyleSheet.create({
   },
   cancelText: {
     ...Typography.body,
-    color: Colors.tint,
-    marginLeft: Spacing.sm,
+    marginLeft: 8,
   },
 });

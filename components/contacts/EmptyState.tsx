@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { BorderRadius, Colors, Spacing, Typography } from '../../constants/theme';
+import { useTheme } from '../../contexts/ThemeContext';
 
 interface EmptyStateProps {
   title: string;
@@ -18,16 +18,18 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
   actionLabel,
   onAction,
 }) => {
+  const { colors } = useTheme();
+  
   return (
     <View style={styles.container}>
       <View style={styles.iconContainer}>
-        <Ionicons name={icon} size={60} color={Colors.textTertiary} />
+        <Ionicons name={icon} size={60} color={colors.textTertiary} />
       </View>
-      <Text style={styles.title}>{title}</Text>
-      <Text style={styles.subtitle}>{subtitle}</Text>
+      <Text style={[styles.title, { color: colors.textPrimary }]}>{title}</Text>
+      <Text style={[styles.subtitle, { color: colors.textSecondary }]}>{subtitle}</Text>
       {actionLabel && onAction && (
-        <Pressable style={styles.button} onPress={onAction}>
-          <Text style={styles.buttonText}>{actionLabel}</Text>
+        <Pressable style={[styles.button, { backgroundColor: colors.tint }]} onPress={onAction}>
+          <Text style={[styles.buttonText, { color: colors.background }]}>{actionLabel}</Text>
         </Pressable>
       )}
     </View>
@@ -39,31 +41,30 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: Spacing.xxxl,
+    paddingHorizontal: 32,
   },
   iconContainer: {
-    marginBottom: Spacing.lg,
+    marginBottom: 16,
   },
   title: {
-    ...Typography.title2,
-    color: Colors.textPrimary,
+    fontSize: 22,
+    fontWeight: '700',
     textAlign: 'center',
-    marginBottom: Spacing.sm,
+    marginBottom: 8,
   },
   subtitle: {
-    ...Typography.body,
-    color: Colors.textSecondary,
+    fontSize: 17,
+    fontWeight: '400',
     textAlign: 'center',
-    marginBottom: Spacing.xl,
+    marginBottom: 20,
   },
   button: {
-    backgroundColor: Colors.tint,
-    paddingHorizontal: Spacing.xl,
-    paddingVertical: Spacing.md,
-    borderRadius: BorderRadius.large,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 12,
   },
   buttonText: {
-    ...Typography.headline,
-    color: Colors.background,
+    fontSize: 17,
+    fontWeight: '600',
   },
 });

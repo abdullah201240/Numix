@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { EmptyState } from '../../components/contacts/EmptyState';
-import { Colors, Spacing, Typography } from '../../constants/theme';
+import { useTheme } from '../../contexts/ThemeContext';
 import { useContactsStore } from '../../store/contactsStore';
 import { useRecentsStore } from '../../store/recentsStore';
 import { RecentCall } from '../../types/contact';
@@ -21,6 +21,7 @@ import { RecentCall } from '../../types/contact';
 export default function RecentsScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { colors } = useTheme();
   
   const { recents, loading, loadRecentsFromStorage, clearRecents } = useRecentsStore();
   const { getContactById } = useContactsStore();
@@ -56,25 +57,12 @@ export default function RecentsScreen() {
     router.push(`/contacts/${contactId}`);
   }, [router]);
 
-  const getCallIcon = (type: RecentCall['type']): keyof typeof Ionicons.glyphMap => {
-    switch (type) {
-      case 'incoming':
-        return 'call' as const;
-      case 'outgoing':
-        return 'call' as const;
-      case 'missed':
-        return 'call' as const;
-      default:
-        return 'call-outline' as const;
-    }
-  };
-
   const getCallIconColor = (type: RecentCall['type']): string => {
     switch (type) {
       case 'missed':
-        return Colors.red;
+        return colors.red;
       default:
-        return Colors.green;
+        return colors.green;
     }
   };
 
@@ -118,16 +106,16 @@ export default function RecentsScreen() {
     
     return (
       <Pressable
-        style={styles.itemContainer}
+        style={[styles.itemContainer, { backgroundColor: colors.background }]}
         onPress={() => contact ? handleContactPress(item.contactId) : null}
       >
         <View style={[styles.callIcon, { backgroundColor: getCallIconColor(item.type) }]}>
-          <Ionicons name={getCallIcon(item.type)} size={14} color={Colors.background} />
+          <Ionicons name="call" size={14} color={colors.background} />
         </View>
         <View style={styles.itemContent}>
           <View style={styles.itemRow}>
             <View style={styles.nameContainer}>
-              <Text style={styles.contactName} numberOfLines={1}>
+              <Text style={[styles.contactName, { color: colors.textPrimary }]} numberOfLines={1}>
                 {item.contactName}
               </Text>
               <Text style={[styles.callType, { color: getCallIconColor(item.type) }]}>
@@ -135,42 +123,36 @@ export default function RecentsScreen() {
               </Text>
             </View>
             <View style={styles.rightContent}>
-              <Text style={styles.time}>{formatTime(item.timestamp)}</Text>
+              <Text style={[styles.time, { color: colors.textSecondary }]}>{formatTime(item.timestamp)}</Text>
               {item.duration > 0 && (
-                <Text style={styles.duration}>{formatDuration(item.duration)}</Text>
+                <Text style={[styles.duration, { color: colors.textTertiary }]}>{formatDuration(item.duration)}</Text>
               )}
             </View>
           </View>
         </View>
-        <Ionicons name="chevron-forward" size={16} color={Colors.textTertiary} />
+        <Ionicons name="chevron-forward" size={16} color={colors.textTertiary} />
       </Pressable>
     );
-  }, [getContactById, handleContactPress]);
+  }, [colors, getContactById, handleContactPress]);
 
   const keyExtractor = useCallback((item: RecentCall) => item.id, []);
 
-  const ListHeader = () => (
-    <View style={styles.header}>
-      <Text style={styles.groupHeader}>Today</Text>
-    </View>
-  );
-
   if (loading && recents.length === 0) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={Colors.tint} />
+      <View style={[styles.loadingContainer, { backgroundColor: colors.background }]}>
+        <ActivityIndicator size="large" color={colors.tint} />
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <Stack.Screen
         options={{
           headerRight: () =>
             recents.length > 0 ? (
               <Pressable onPress={handleClearRecents} hitSlop={8}>
-                <Text style={styles.clearButton}>Clear</Text>
+                <Text style={[styles.clearButton, { color: colors.tint }]}>Clear</Text>
               </Pressable>
             ) : null,
         }}
@@ -195,12 +177,12 @@ export default function RecentsScreen() {
             <RefreshControl
               refreshing={refreshing}
               onRefresh={handleRefresh}
-              tintColor={Colors.tint}
+              tintColor={colors.tint}
             />
           }
           contentContainerStyle={[
             styles.listContent,
-            { paddingBottom: insets.bottom + Spacing.lg },
+            { paddingBottom: insets.bottom + 16 },
           ]}
         />
       )}
@@ -211,35 +193,23 @@ export default function RecentsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: Colors.background,
-  },
-  header: {
-    paddingHorizontal: Spacing.lg,
-    paddingTop: Spacing.md,
-  },
-  groupHeader: {
-    ...Typography.headline,
-    color: Colors.textSecondary,
   },
   listContent: {
-    paddingBottom: Spacing.xl,
+    paddingBottom: 16,
   },
   clearButton: {
-    ...Typography.body,
-    color: Colors.tint,
+    fontSize: 17,
   },
   itemContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
-    backgroundColor: Colors.background,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
   },
   callIcon: {
     width: 24,
@@ -250,7 +220,7 @@ const styles = StyleSheet.create({
   },
   itemContent: {
     flex: 1,
-    marginLeft: Spacing.md,
+    marginLeft: 12,
   },
   itemRow: {
     flexDirection: 'row',
@@ -261,28 +231,20 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   contactName: {
-    ...Typography.body,
-    color: Colors.textPrimary,
+    fontSize: 17,
   },
   callType: {
-    ...Typography.caption1,
+    fontSize: 12,
     marginTop: 2,
   },
   rightContent: {
     alignItems: 'flex-end',
   },
   time: {
-    ...Typography.caption1,
-    color: Colors.textSecondary,
+    fontSize: 12,
   },
   duration: {
-    ...Typography.caption2,
-    color: Colors.textTertiary,
+    fontSize: 11,
     marginTop: 2,
-  },
-  divider: {
-    height: StyleSheet.hairlineWidth,
-    backgroundColor: Colors.divider,
-    marginLeft: Spacing.lg + 24 + Spacing.md,
   },
 });

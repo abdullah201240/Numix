@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
-import { Colors, Spacing, Typography } from '../../constants/theme';
+import { useTheme } from '../../contexts/ThemeContext';
 import { Contact } from '../../types/contact';
 import { getFullName } from '../../utils/contacts';
 import { ContactAvatar } from './ContactAvatar';
@@ -22,6 +22,7 @@ export const ContactListItem: React.FC<ContactListItemProps> = ({
   onToggleFavorite,
   showDivider = true,
 }) => {
+  const { colors } = useTheme();
   const scale = useSharedValue(1);
   const opacity = useSharedValue(1);
   const fullName = getFullName(contact);
@@ -47,7 +48,7 @@ export const ContactListItem: React.FC<ContactListItemProps> = ({
 
   return (
     <AnimatedPressable
-      style={[styles.container, animatedStyle]}
+      style={[styles.container, { backgroundColor: colors.background }, animatedStyle]}
       onPress={onPress}
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
@@ -59,42 +60,41 @@ export const ContactListItem: React.FC<ContactListItemProps> = ({
           size="small"
         />
         <View style={styles.infoContainer}>
-          <Text style={styles.name} numberOfLines={1}>
+          <Text style={[styles.name, { color: colors.textPrimary }]} numberOfLines={1}>
             {fullName}
           </Text>
         </View>
         {contact.isFavorite && (
           <Pressable onPress={handleFavoritePress} hitSlop={8}>
-            <Ionicons name="star" size={16} color={Colors.starActive} />
+            <Ionicons name="star" size={16} color={colors.starActive} />
           </Pressable>
         )}
       </View>
-      {showDivider && <View style={styles.divider} />}
+      {showDivider && (
+        <View style={[styles.divider, { backgroundColor: colors.divider }]} />
+      )}
     </AnimatedPressable>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    backgroundColor: Colors.background,
-  },
+  container: {},
   content: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
   },
   infoContainer: {
     flex: 1,
-    marginLeft: Spacing.md,
+    marginLeft: 12,
   },
   name: {
-    ...Typography.body,
-    color: Colors.textPrimary,
+    fontSize: 17,
+    fontWeight: '400',
   },
   divider: {
     height: StyleSheet.hairlineWidth,
-    backgroundColor: Colors.divider,
-    marginLeft: Spacing.lg + 40 + Spacing.md,
+    marginLeft: 68,
   },
 });

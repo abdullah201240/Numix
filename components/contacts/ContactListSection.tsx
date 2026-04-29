@@ -1,30 +1,31 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { Colors, SECTION_LIST_HEADER_HEIGHT, Spacing, Typography } from '../../constants/theme';
+import { useTheme } from '../../contexts/ThemeContext';
 
 interface ContactListSectionProps {
   title: string;
 }
 
 export const ContactListSection: React.FC<ContactListSectionProps> = ({ title }) => {
+  const { colors } = useTheme();
+  
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>{title}</Text>
+    <View style={[styles.container, { backgroundColor: colors.tertiaryBackground }]}>
+      <Text style={[styles.title, { color: colors.textSecondary }]}>{title}</Text>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: Colors.secondaryBackground,
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.sm,
-    height: SECTION_LIST_HEADER_HEIGHT,
+    paddingHorizontal: 16,
+    paddingVertical: 6,
+    height: 28,
     justifyContent: 'center',
   },
   title: {
-    ...Typography.headline,
-    color: Colors.textSecondary,
+    fontSize: 17,
+    fontWeight: '600',
     textTransform: 'uppercase',
   },
 });

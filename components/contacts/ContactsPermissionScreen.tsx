@@ -1,8 +1,9 @@
 import React from 'react';
-import { Alert, Image, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors, Spacing, Typography } from '../../constants/theme';
-import { PermissionStatus } from '../../hooks/useContactsPermission';
+import { useTheme } from '../../contexts/ThemeContext';
+
+type PermissionStatus = 'undetermined' | 'denied' | 'granted' | 'restricted';
 
 interface ContactsPermissionScreenProps {
   permissionStatus: PermissionStatus;
@@ -15,64 +16,53 @@ export const ContactsPermissionScreen: React.FC<ContactsPermissionScreenProps> =
   onRequestPermission,
   isChecking,
 }) => {
-  const handleOpenSettings = () => {
-    Linking.openSettings();
-  };
+  const { colors } = useTheme();
 
   const getContent = () => {
     if (permissionStatus === 'denied') {
       return {
-        icon: 'shield-outline',
+        icon: 'shield-outline' as const,
         title: 'Contacts Access Denied',
-        subtitle: 'Numix needs access to your contacts to manage them. Please enable in Settings.',
+        subtitle: 'Numix needs access to your contacts. Please enable in Settings app.',
         buttonText: 'Open Settings',
-        showSkip: false,
       };
     }
 
     if (permissionStatus === 'restricted') {
       return {
-        icon: 'lock-closed-outline',
+        icon: 'lock-closed-outline' as const,
         title: 'Contacts Restricted',
         subtitle: 'Contact access is restricted on this device.',
         buttonText: 'OK',
-        showSkip: false,
       };
     }
 
     return {
-      icon: 'person-add-outline',
+      icon: 'person-add-outline' as const,
       title: 'Access Your Contacts',
-      subtitle: 'Numix needs permission to access your contacts. This lets you view and manage all your contacts in one place.',
+      subtitle: 'Numix needs permission to access your contacts to display and manage them.',
       buttonText: 'Allow Access',
-      showSkip: true,
     };
   };
 
   const content = getContent();
 
   return (
-    <View style={styles.container}>
-      <View style={styles.iconContainer}>
-        <Ionicons name={content.icon as any} size={64} color={Colors.tint} />
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <View style={[styles.iconContainer, { backgroundColor: colors.tintLight }]}>
+        <Ionicons name={content.icon} size={64} color={colors.tint} />
       </View>
 
-      <Text style={styles.title}>{content.title}</Text>
-      <Text style={styles.subtitle}>{content.subtitle}</Text>
+      <Text style={[styles.title, { color: colors.textPrimary }]}>{content.title}</Text>
+      <Text style={[styles.subtitle, { color: colors.textSecondary }]}>{content.subtitle}</Text>
 
       <Pressable
-        style={[styles.button, isChecking && styles.buttonDisabled]}
-        onPress={permissionStatus === 'denied' ? handleOpenSettings : onRequestPermission}
+        style={[styles.button, { backgroundColor: colors.tint }, isChecking && styles.buttonDisabled]}
+        onPress={permissionStatus === 'denied' ? Linking.openSettings : onRequestPermission}
         disabled={isChecking}
       >
-        <Text style={styles.buttonText}>{content.buttonText}</Text>
+        <Text style={[styles.buttonText, { color: colors.background }]}>{content.buttonText}</Text>
       </Pressable>
-
-      {content.showSkip && (
-        <Pressable style={styles.skipButton} onPress={() => {}}>
-          <Text style={styles.skipButtonText}>Skip for now</Text>
-        </Pressable>
-      )}
     </View>
   );
 };
@@ -82,35 +72,31 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: Spacing.xl,
-    backgroundColor: Colors.background,
+    padding: 20,
   },
   iconContainer: {
     width: 120,
     height: 120,
     borderRadius: 60,
-    backgroundColor: Colors.tintLight,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: Spacing.xl,
+    marginBottom: 20,
   },
   title: {
-    ...Typography.title1,
-    color: Colors.textPrimary,
+    fontSize: 28,
+    fontWeight: '700',
     textAlign: 'center',
-    marginBottom: Spacing.md,
+    marginBottom: 12,
   },
   subtitle: {
-    ...Typography.body,
-    color: Colors.textSecondary,
+    fontSize: 17,
     textAlign: 'center',
-    marginBottom: Spacing.xl,
-    paddingHorizontal: Spacing.lg,
+    marginBottom: 20,
+    paddingHorizontal: 20,
   },
   button: {
-    backgroundColor: Colors.tint,
-    paddingHorizontal: Spacing.xl * 2,
-    paddingVertical: Spacing.md,
+    paddingHorizontal: 40,
+    paddingVertical: 12,
     borderRadius: 12,
     minWidth: 200,
     alignItems: 'center',
@@ -119,16 +105,7 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   buttonText: {
-    ...Typography.headline,
-    color: Colors.background,
+    fontSize: 17,
     fontWeight: '600',
-  },
-  skipButton: {
-    marginTop: Spacing.lg,
-    padding: Spacing.md,
-  },
-  skipButtonText: {
-    ...Typography.body,
-    color: Colors.textSecondary,
   },
 });

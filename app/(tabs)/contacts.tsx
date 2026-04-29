@@ -17,7 +17,7 @@ import { ContactListSection } from '../../components/contacts/ContactListSection
 import { ContactsPermissionScreen } from '../../components/contacts/ContactsPermissionScreen';
 import { EmptyState } from '../../components/contacts/EmptyState';
 import { SearchBar } from '../../components/contacts/SearchBar';
-import { Colors, Spacing, Typography } from '../../constants/theme';
+import { useTheme } from '../../contexts/ThemeContext';
 import { useContactsStore } from '../../store/contactsStore';
 import { Contact } from '../../types/contact';
 import { checkContactsPermission, requestContactsPermission } from '../../services/contactsApi';
@@ -31,6 +31,7 @@ export default function ContactsListScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const sectionListRef = useRef<SectionList<Contact, SectionData>>(null);
+  const { colors } = useTheme();
   
   const {
     contacts,
@@ -128,12 +129,6 @@ export default function ContactsListScreen() {
 
   const keyExtractor = useCallback((item: Contact) => item.id, []);
 
-  const getItemLayout = useCallback((_: any, index: number) => ({
-    length: 60,
-    offset: 60 * index,
-    index,
-  }), []);
-
   if (showPermissionScreen) {
     return (
       <ContactsPermissionScreen
@@ -146,38 +141,39 @@ export default function ContactsListScreen() {
 
   if (loading && contacts.length === 0) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={Colors.tint} />
-        <Text style={styles.loadingText}>Loading contacts...</Text>
+      <View style={[styles.loadingContainer, { backgroundColor: colors.background }]}>
+        <ActivityIndicator size="large" color={colors.tint} />
+        <Text style={[styles.loadingText, { color: colors.textSecondary }]}>Loading contacts...</Text>
       </View>
     );
   }
 
   if (error && contacts.length === 0) {
     return (
-      <View style={styles.errorContainer}>
-        <Ionicons name="warning" size={48} color={Colors.red} />
-        <Text style={styles.errorTitle}>Unable to Load Contacts</Text>
-        <Text style={styles.errorMessage}>{error}</Text>
-        <Pressable style={styles.retryButton} onPress={syncFromPhone}>
-          <Text style={styles.retryButtonText}>Retry</Text>
+      <View style={[styles.errorContainer, { backgroundColor: colors.background }]}>
+        <Ionicons name="warning" size={48} color={colors.red} />
+        <Text style={[styles.errorTitle, { color: colors.textPrimary }]}>Unable to Load Contacts</Text>
+        <Text style={[styles.errorMessage, { color: colors.textSecondary }]}>{error}</Text>
+        <Pressable style={[styles.retryButton, { backgroundColor: colors.tint }]} onPress={syncFromPhone}>
+          <Text style={[styles.retryButtonText, { color: colors.background }]}>Retry</Text>
         </Pressable>
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <Stack.Screen
         options={{
           headerShown: true,
           headerLargeTitle: true,
           headerLargeTitleStyle: {
             fontWeight: '700',
+            color: colors.textPrimary,
           },
           headerRight: () => (
             <Pressable onPress={handleAddContact} hitSlop={8}>
-              <Ionicons name="add" size={28} color={Colors.tint} />
+              <Ionicons name="add" size={28} color={colors.tint} />
             </Pressable>
           ),
           headerLeft: () => null,
@@ -205,7 +201,6 @@ export default function ContactsListScreen() {
             renderSectionHeader={renderSectionHeader}
             keyExtractor={keyExtractor}
             stickySectionHeadersEnabled
-            getItemLayout={getItemLayout}
             initialNumToRender={20}
             maxToRenderPerBatch={20}
             windowSize={10}
@@ -214,12 +209,12 @@ export default function ContactsListScreen() {
               <RefreshControl
                 refreshing={refreshing}
                 onRefresh={handleRefresh}
-                tintColor={Colors.tint}
+                tintColor={colors.tint}
               />
             }
             contentContainerStyle={[
               styles.listContent,
-              { paddingBottom: insets.bottom + Spacing.lg },
+              { paddingBottom: insets.bottom + 16 },
             ]}
             SectionSeparatorComponent={() => <View style={styles.sectionSeparator} />}
           />
@@ -238,57 +233,51 @@ export default function ContactsListScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: Colors.background,
-    padding: Spacing.xl,
+    padding: 20,
   },
   loadingText: {
-    ...Typography.body,
-    color: Colors.textSecondary,
-    marginTop: Spacing.md,
+    fontSize: 17,
+    marginTop: 12,
   },
   errorContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: Colors.background,
-    padding: Spacing.xl,
+    padding: 20,
   },
   errorTitle: {
-    ...Typography.title3,
-    color: Colors.textPrimary,
-    marginTop: Spacing.lg,
+    fontSize: 20,
+    fontWeight: '600',
+    marginTop: 16,
     textAlign: 'center',
   },
   errorMessage: {
-    ...Typography.body,
-    color: Colors.textSecondary,
-    marginTop: Spacing.sm,
+    fontSize: 17,
+    marginTop: 8,
     textAlign: 'center',
   },
   retryButton: {
-    marginTop: Spacing.xl,
-    backgroundColor: Colors.tint,
-    paddingHorizontal: Spacing.xl,
-    paddingVertical: Spacing.md,
+    marginTop: 20,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
     borderRadius: 8,
   },
   retryButtonText: {
-    ...Typography.headline,
-    color: Colors.background,
+    fontSize: 17,
+    fontWeight: '600',
   },
   listContainer: {
     flex: 1,
   },
   listContent: {
-    paddingBottom: Spacing.xl,
+    paddingBottom: 16,
   },
   sectionSeparator: {
-    height: Spacing.sm,
+    height: 8,
   },
 });

@@ -12,13 +12,14 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ContactListItem } from '../../components/contacts/ContactListItem';
 import { EmptyState } from '../../components/contacts/EmptyState';
-import { Colors, Spacing } from '../../constants/theme';
+import { useTheme } from '../../contexts/ThemeContext';
 import { useContactsStore } from '../../store/contactsStore';
 import { Contact } from '../../types/contact';
 
 export default function FavoritesScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { colors } = useTheme();
   
   const {
     loading,
@@ -60,19 +61,19 @@ export default function FavoritesScreen() {
 
   if (loading && favorites.length === 0) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={Colors.tint} />
+      <View style={[styles.loadingContainer, { backgroundColor: colors.background }]}>
+        <ActivityIndicator size="large" color={colors.tint} />
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <Stack.Screen
         options={{
           headerRight: () => (
             <Pressable onPress={() => router.push('/contacts/add')} hitSlop={8}>
-              <Text style={styles.addButton}>+</Text>
+              <Text style={[styles.addButton, { color: colors.tint }]}>+</Text>
             </Pressable>
           ),
         }}
@@ -99,12 +100,12 @@ export default function FavoritesScreen() {
             <RefreshControl
               refreshing={refreshing}
               onRefresh={handleRefresh}
-              tintColor={Colors.tint}
+              tintColor={colors.tint}
             />
           }
           contentContainerStyle={[
             styles.listContent,
-            { paddingBottom: insets.bottom + Spacing.lg },
+            { paddingBottom: insets.bottom + 16 },
           ]}
         />
       )}
@@ -115,20 +116,17 @@ export default function FavoritesScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: Colors.background,
   },
   listContent: {
-    paddingBottom: Spacing.xl,
+    paddingBottom: 16,
   },
   addButton: {
     fontSize: 28,
-    color: Colors.tint,
     fontWeight: '400',
   },
 });

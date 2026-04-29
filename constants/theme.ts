@@ -2,23 +2,59 @@ import { Dimensions } from 'react-native';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
-export const Colors = {
-  // Backgrounds
+export type ColorScheme = 'light' | 'dark';
+
+export interface ThemeColors {
+  background: string;
+  secondaryBackground: string;
+  tertiaryBackground: string;
+  card: string;
+  
+  divider: string;
+  separator: string;
+  
+  textPrimary: string;
+  textSecondary: string;
+  textTertiary: string;
+  
+  tint: string;
+  tintLight: string;
+  
+  red: string;
+  orange: string;
+  yellow: string;
+  green: string;
+  teal: string;
+  blue: string;
+  indigo: string;
+  purple: string;
+  pink: string;
+  
+  starActive: string;
+  starInactive: string;
+  searchBackground: string;
+  
+  tabBar: string;
+  tabBarBorder: string;
+  headerBackground: string;
+}
+
+export const LightColors: ThemeColors = {
   background: '#FFFFFF',
   secondaryBackground: '#F2F2F7',
   tertiaryBackground: '#EFEFF4',
+  card: '#FFFFFF',
   
-  // Dividers & Separators
   divider: '#E5E5EA',
   separator: '#C6C6C8',
   
-  // Text
   textPrimary: '#000000',
   textSecondary: '#8E8E93',
   textTertiary: '#C7C7CC',
   
-  // iOS System Colors
   tint: '#007AFF',
+  tintLight: '#E5F2FF',
+  
   red: '#FF3B30',
   orange: '#FF9500',
   yellow: '#FFCC00',
@@ -29,20 +65,63 @@ export const Colors = {
   purple: '#AF52DE',
   pink: '#FF2D55',
   
-  // Special
-  tintLight: '#E5F2FF',
   starActive: '#FF9500',
   starInactive: '#C7C7CC',
   searchBackground: '#E5E5EA',
   
-  // Dark mode (for reference)
-  dark: {
-    background: '#000000',
-    secondaryBackground: '#1C1C1E',
-    tertiaryBackground: '#2C2C2E',
-    textPrimary: '#FFFFFF',
-    textSecondary: '#8E8E93',
+  tabBar: '#F8F8F8',
+  tabBarBorder: '#C6C6C8',
+  headerBackground: '#FFFFFF',
+};
+
+export const DarkColors: ThemeColors = {
+  background: '#000000',
+  secondaryBackground: '#1C1C1E',
+  tertiaryBackground: '#2C2C2E',
+  card: '#1C1C1E',
+  
+  divider: '#38383A',
+  separator: '#48484A',
+  
+  textPrimary: '#FFFFFF',
+  textSecondary: '#8E8E93',
+  textTertiary: '#636366',
+  
+  tint: '#0A84FF',
+  tintLight: '#1C3B5C',
+  
+  red: '#FF453A',
+  orange: '#FF9F0A',
+  yellow: '#FFD60A',
+  green: '#30D158',
+  teal: '#64D2FF',
+  blue: '#0A84FF',
+  indigo: '#5E5CE6',
+  purple: '#BF5AF2',
+  pink: '#FF375F',
+  
+  starActive: '#FF9F0A',
+  starInactive: '#636366',
+  searchBackground: '#1C1C1E',
+  
+  tabBar: '#1C1C1E',
+  tabBarBorder: '#38383A',
+  headerBackground: '#1C1C1E',
+};
+
+export const AvatarColors = [
+  '#FF3B30', '#FF9500', '#FFCC00', '#34C759', 
+  '#5AC8FA', '#007AFF', '#5856D6', '#AF52DE', '#FF2D55',
+  '#00C7BE', '#30B0C7', '#32ADE6', '#6466F1', '#A855F7',
+];
+
+export const getAvatarColor = (name: string): string => {
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) {
+    hash = name.charCodeAt(i) + ((hash << 5) - hash);
   }
+  const index = Math.abs(hash) % AvatarColors.length;
+  return AvatarColors[index];
 };
 
 export const Typography = {
@@ -114,13 +193,6 @@ export const Spacing = {
   xxxxl: 40,
 };
 
-export const AvatarSizes = {
-  small: 40,
-  medium: 60,
-  large: 100,
-  xlarge: 120,
-};
-
 export const BorderRadius = {
   small: 4,
   medium: 8,
@@ -147,19 +219,37 @@ export const SEARCH_BAR_HEIGHT = 36;
 export const SECTION_LIST_HEADER_HEIGHT = 28;
 export const ALPHABET_INDEX_WIDTH = 20;
 
-export const AVATAR_COLORS = [
-  '#FF3B30', '#FF9500', '#FFCC00', '#34C759', 
-  '#5AC8FA', '#007AFF', '#5856D6', '#AF52DE', '#FF2D55',
-  '#00C7BE', '#30B0C7', '#32ADE6', '#6466F1', '#A855F7',
-];
-
-export const getAvatarColor = (name: string): string => {
-  let hash = 0;
-  for (let i = 0; i < name.length; i++) {
-    hash = name.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  const index = Math.abs(hash) % AVATAR_COLORS.length;
-  return AVATAR_COLORS[index];
+export const Colors = {
+  background: '#FFFFFF',
+  secondaryBackground: '#F2F2F7',
+  tertiaryBackground: '#EFEFF4',
+  card: '#FFFFFF',
+  
+  divider: '#E5E5EA',
+  separator: '#C6C6C8',
+  
+  textPrimary: '#000000',
+  textSecondary: '#8E8E93',
+  textTertiary: '#C7C7CC',
+  
+  tint: '#007AFF',
+  tintLight: '#E5F2FF',
+  
+  red: '#FF3B30',
+  orange: '#FF9500',
+  yellow: '#FFCC00',
+  green: '#34C759',
+  teal: '#5AC8FA',
+  blue: '#007AFF',
+  indigo: '#5856D6',
+  purple: '#AF52DE',
+  pink: '#FF2D55',
+  
+  starActive: '#FF9500',
+  starInactive: '#C7C7CC',
+  searchBackground: '#E5E5EA',
+  
+  tabBar: '#F8F8F8',
+  tabBarBorder: '#C6C6C8',
+  headerBackground: '#FFFFFF',
 };
-
-export const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ#'.split('');

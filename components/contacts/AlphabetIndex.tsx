@@ -1,6 +1,6 @@
 import React, { useCallback } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { ALPHABET, ALPHABET_INDEX_WIDTH, Colors, Spacing, Typography } from '../../constants/theme';
+import { useTheme } from '../../contexts/ThemeContext';
 
 interface AlphabetIndexProps {
   sections: { title: string }[];
@@ -8,11 +8,15 @@ interface AlphabetIndexProps {
   currentLetter?: string;
 }
 
+const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ#'.split('');
+
 export const AlphabetIndex: React.FC<AlphabetIndexProps> = ({
   sections,
   onLetterSelect,
   currentLetter,
 }) => {
+  const { colors } = useTheme();
+  
   const letters = ALPHABET.filter((letter) => {
     return sections.some((s) => s.title === letter);
   });
@@ -35,7 +39,7 @@ export const AlphabetIndex: React.FC<AlphabetIndexProps> = ({
             onPress={() => handlePress(letter)}
             hitSlop={{ top: 2, bottom: 2, left: 4, right: 4 }}
           >
-            <Text style={[styles.letter, isActive && styles.letterActive]}>
+            <Text style={[styles.letter, { color: colors.tint }, isActive && styles.letterActive]}>
               {letter}
             </Text>
           </Pressable>
@@ -51,14 +55,14 @@ const styles = StyleSheet.create({
     right: 0,
     top: 0,
     bottom: 0,
-    width: ALPHABET_INDEX_WIDTH + 8,
+    width: 28,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: Spacing.lg,
+    paddingVertical: 16,
   },
   letter: {
-    ...Typography.caption1,
-    color: Colors.tint,
+    fontSize: 12,
+    fontWeight: '400',
     textAlign: 'center',
     lineHeight: 14,
     height: 14,

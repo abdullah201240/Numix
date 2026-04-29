@@ -1,12 +1,13 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import { DarkTheme, DefaultTheme, ThemeProvider as RNPThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
 
-import { useColorScheme } from '@/components/useColorScheme';
+import { ThemeProvider, useTheme } from '../contexts/ThemeContext';
+import { DarkColors, LightColors } from '../constants/theme';
 
 export {
   ErrorBoundary
@@ -38,14 +39,32 @@ export default function RootLayout() {
     return null;
   }
 
-  return <RootLayoutNav />;
+  return (
+    <ThemeProvider>
+      <RootLayoutNav />
+    </ThemeProvider>
+  );
 }
 
 function RootLayoutNav() {
-  const colorScheme = useColorScheme();
+  const { isDark } = useTheme();
+
+  const navigationTheme = isDark ? DarkTheme : DefaultTheme;
+  const colors = isDark ? DarkColors : LightColors;
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+    <RNPThemeProvider value={{
+      ...navigationTheme,
+      colors: {
+        ...navigationTheme.colors,
+        primary: colors.tint,
+        background: colors.background,
+        card: colors.card,
+        text: colors.textPrimary,
+        border: colors.divider,
+        notification: colors.tint,
+      },
+    }}>
       <Stack>
         <Stack.Screen
           name="index"
@@ -72,6 +91,6 @@ function RootLayoutNav() {
           }}
         />
       </Stack>
-    </ThemeProvider>
+    </RNPThemeProvider>
   );
 }

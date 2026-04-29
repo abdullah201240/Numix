@@ -1,21 +1,23 @@
-import { Colors } from '@/constants/theme';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { Tabs } from 'expo-router';
+import { useTheme } from '../../contexts/ThemeContext';
 
 export const unstable_settings = {
   initialRouteName: 'contacts',
 };
 
 export default function AppLayout() {
+  const { colors } = useTheme();
+  
   return (
     <Tabs
       initialRouteName="contacts"
       screenOptions={{
-        tabBarActiveTintColor: Colors.tint,
-        tabBarInactiveTintColor: Colors.textSecondary,
+        tabBarActiveTintColor: colors.tint,
+        tabBarInactiveTintColor: colors.textSecondary,
         tabBarStyle: {
-          backgroundColor: Colors.background,
-          borderTopColor: Colors.divider,
+          backgroundColor: colors.tabBar,
+          borderTopColor: colors.tabBarBorder,
           borderTopWidth: 0.5,
           paddingTop: 4,
           paddingBottom: 8,
@@ -26,12 +28,13 @@ export default function AppLayout() {
           fontWeight: '500',
         },
         headerStyle: {
-          backgroundColor: Colors.background,
+          backgroundColor: colors.headerBackground,
         },
-        headerTintColor: Colors.tint,
+        headerTintColor: colors.tint,
         headerTitleStyle: {
           fontWeight: '600',
           fontSize: 17,
+          color: colors.textPrimary,
         },
         headerShadowVisible: false,
       }}
