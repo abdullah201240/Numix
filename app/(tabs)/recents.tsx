@@ -1,8 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
+import { GlassView } from 'expo-glass-effect';
 import { useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
+  Animated,
   FlatList,
   Pressable,
   RefreshControl,
@@ -11,7 +13,6 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { GlassView } from 'expo-glass-effect';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ContactAvatar } from '../../components/contacts/ContactAvatar';
 import { EmptyState } from '../../components/contacts/EmptyState';
@@ -147,7 +148,9 @@ export default function RecentsScreen() {
   const { recents, loading, loadRecentsFromStorage, clearRecents } = useRecentsStore();
 
   const [refreshing, setRefreshing] = useState(false);
-  const [missedOnly, setMissedOnly] = useState(false);
+  const [activeTab, setActiveTab] = useState<'all' | 'missed'>('all');
+  const [sliderPosition] = useState(new Animated.Value(0));
+  const [tabWidth, setTabWidth] = useState(0);
 
   useEffect(() => {
     loadRecentsFromStorage();
@@ -159,13 +162,23 @@ export default function RecentsScreen() {
     setRefreshing(false);
   }, [loadRecentsFromStorage]);
 
+  const handleTabChange = useCallback((tab: 'all' | 'missed') => {
+    setActiveTab(tab);
+    Animated.spring(sliderPosition, {
+      toValue: tab === 'all' ? 0 : tabWidth,
+      useNativeDriver: true,
+      tension: 65,
+      friction: 11,
+    }).start();
+  }, [sliderPosition, tabWidth]);
+
   const handlePress = useCallback(
     (contactId: string) => router.push(`/contacts/${contactId}`),
     [router]
   );
 
   const filtered = recents.filter((r) => {
-    return !missedOnly || r.type === 'missed';
+    return activeTab !== 'missed' || r.type === 'missed';
   });
 
   const listData = useMemo(() => groupByDay(filtered), [filtered]);
@@ -205,29 +218,69 @@ export default function RecentsScreen() {
         style={styles.glassHeader} 
       />
       <View style={[styles.header, { paddingTop: insets.top + 4, backgroundColor: 'transparent' }]}>
-        <View style={styles.filterRow}>
-          <Pressable
-            onPress={() => setMissedOnly(false)}
-            style={[
-              styles.filterPill,
-              { backgroundColor: !missedOnly ? colors.tint : colors.tertiaryBackground },
-            ]}
+        <View style={styles.tabContainer}>
+          <View 
+            style={styles.tabWrapper}
+            onLayout={(event) => {
+              const width = event.nativeEvent.layout.width;
+              setTabWidth(width / 2 - 4);
+            }}
           >
-            <Text style={[styles.filterPillText, { color: !missedOnly ? '#FFFFFF' : colors.textSecondary }]}>
-              All
-            </Text>
-          </Pressable>
-          <Pressable
-            onPress={() => setMissedOnly(true)}
-            style={[
-              styles.filterPill,
-              { backgroundColor: missedOnly ? colors.red : colors.tertiaryBackground },
-            ]}
-          >
-            <Text style={[styles.filterPillText, { color: missedOnly ? '#FFFFFF' : colors.textSecondary }]}>
-              Missed
-            </Text>
-          </Pressable>
+            <GlassView
+              glassEffectStyle="clear"
+              colorScheme={isDark ? 'dark' : 'light'}
+              tintColor={isDark ? 'rgba(28, 28, 30, 0.72)' : 'rgba(255, 255, 255, 0.72)'}
+              isInteractive
+              style={styles.tabGlassBackground}
+            />
+            <Animated.View
+              style={[
+                styles.tabSlider,
+                {
+                  transform: [
+                    {
+                      translateX: sliderPosition,
+                    },
+                  ],
+                },
+              ]}
+            >
+              <GlassView
+                glassEffectStyle={{
+                  style: 'clear',
+                  animate: true,
+                  animationDuration: 0.3,
+                }}
+                colorScheme={isDark ? 'dark' : 'light'}
+                tintColor={isDark ? 'rgba(44, 44, 46, 0.9)' : 'rgba(220, 220, 225, 0.9)'}
+                style={styles.tabSliderGlass}
+              />
+            </Animated.View>
+            <Pressable
+              onPress={() => handleTabChange('all')}
+              style={styles.tabButton}
+            >
+              <Text style={[
+                styles.tabButtonText,
+                activeTab === 'all' && styles.tabButtonTextActive,
+                { color: activeTab === 'all' ? colors.textPrimary : colors.textSecondary }
+              ]}>
+                All
+              </Text>
+            </Pressable>
+            <Pressable
+              onPress={() => handleTabChange('missed')}
+              style={styles.tabButton}
+            >
+              <Text style={[
+                styles.tabButtonText,
+                activeTab === 'missed' && styles.tabButtonTextActive,
+                { color: activeTab === 'missed' ? colors.textPrimary : colors.textSecondary }
+              ]}>
+                Missed
+              </Text>
+            </Pressable>
+          </View>
           <View style={{ flex: 1 }} />
           {recents.length > 0 && (
             <Pressable onPress={clearRecents} hitSlop={8}>
@@ -248,7 +301,7 @@ export default function RecentsScreen() {
       </View>
 
       {filtered.length === 0 ? (
-        missedOnly ? (
+        activeTab === 'missed' ? (
           <EmptyState title="No Missed Calls" subtitle="No missed calls" icon="call-outline" />
         ) : (
           <EmptyState title="No Recents" subtitle="Your call history will appear here" icon="call-outline" />
@@ -288,20 +341,52 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 8,
   },
-  filterRow: {
+  tabContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
     marginBottom: 12,
   },
-  filterPill: {
-    paddingHorizontal: 18,
-    paddingVertical: 8,
-    borderRadius: 20,
+  tabWrapper: {
+    flexDirection: 'row',
+    height: 36,
+    borderRadius: 12,
+    overflow: 'hidden',
+    position: 'relative',
+    flex: 1,
+    maxWidth: 200,
   },
-  filterPillText: {
+  tabGlassBackground: {
+    ...StyleSheet.absoluteFillObject,
+    borderRadius: 12,
+    borderWidth: 0.5,
+  },
+  tabSlider: {
+    position: 'absolute',
+    top: 2,
+    left: 2,
+    width: '50%',
+    height: 32,
+    borderRadius: 10,
+    overflow: 'hidden',
+    zIndex: 1,
+  },
+  tabSliderGlass: {
+    ...StyleSheet.absoluteFillObject,
+    borderRadius: 10,
+  },
+  tabButton: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 1,
+  },
+  tabButtonText: {
     fontSize: 15,
     fontWeight: '500',
+  },
+  tabButtonTextActive: {
+    fontWeight: '600',
   },
   clearButton: {
     fontSize: 17,

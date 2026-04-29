@@ -161,7 +161,7 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   headerTitle: {
-    fontSize: 34,
+    fontSize: 30,
     fontWeight: '700',
     letterSpacing: 0.37,
   },
