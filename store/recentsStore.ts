@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { CallType, RecentCall } from '../types/contact';
-import { loadRecents, saveRecents } from '../utils/storage';
+import { loadRecents, saveRecents } from '../services/recentsStorage';
 import { generateId } from '../utils/uuid';
 
 interface RecentsState {

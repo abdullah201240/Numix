@@ -1,12 +1,12 @@
 export interface PhoneNumber {
   id: string;
-  label: 'mobile' | 'home' | 'work' | 'iphone' | 'fax';
+  label: 'mobile' | 'home' | 'work' | 'iphone' | 'fax' | 'main' | 'pager';
   number: string;
 }
 
 export interface EmailAddress {
   id: string;
-  label: 'mobile' | 'home' | 'work' | 'icloud';
+  label: 'mobile' | 'home' | 'work' | 'icloud' | 'other';
   email: string;
 }
 
@@ -17,8 +17,10 @@ export interface Contact {
   phones: PhoneNumber[];
   emails: EmailAddress[];
   company: string;
+  jobTitle: string;
   address: string;
   notes: string;
+  imageUri?: string;
   isFavorite: boolean;
   createdAt: number;
   updatedAt: number;

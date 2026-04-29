@@ -30,6 +30,7 @@ export const Colors = {
   pink: '#FF2D55',
   
   // Special
+  tintLight: '#E5F2FF',
   starActive: '#FF9500',
   starInactive: '#C7C7CC',
   searchBackground: '#E5E5EA',

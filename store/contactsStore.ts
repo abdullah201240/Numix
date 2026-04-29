@@ -1,26 +1,30 @@
 import { create } from 'zustand';
 import { Contact } from '../types/contact';
 import { groupContactsByLetter, searchContacts, sortContacts } from '../utils/contacts';
-import { createSampleContacts } from '../utils/sampleData';
-import { isInitialized, loadContacts, saveContacts, setInitialized } from '../utils/storage';
+import { fetchPhoneContacts, checkContactsPermission, requestContactsPermission } from '../services/contactsApi';
+import { saveContacts, loadContacts } from '../services/storage';
 import { generateId } from '../utils/uuid';
+
+export type SyncStatus = 'idle' | 'loading' | 'syncing' | 'error';
 
 interface ContactsState {
   contacts: Contact[];
   loading: boolean;
   error: string | null;
   searchQuery: string;
-  
-  // Actions
-  loadContactsFromStorage: () => Promise<void>;
+  syncStatus: SyncStatus;
+  totalCount: number;
+  lastSyncTime: number | null;
+
+  loadContacts: () => Promise<void>;
+  syncFromPhone: () => Promise<boolean>;
+  requestPermission: () => Promise<boolean>;
   addContact: (contact: Omit<Contact, 'id' | 'createdAt' | 'updatedAt'>) => Promise<Contact>;
   updateContact: (id: string, updates: Partial<Contact>) => Promise<void>;
   deleteContact: (id: string) => Promise<void>;
   toggleFavorite: (id: string) => Promise<void>;
   getContactById: (id: string) => Contact | undefined;
   setSearchQuery: (query: string) => void;
-  
-  // Computed/Getters
   getSortedContacts: () => Contact[];
   getContactsByLetter: () => { title: string; data: Contact[] }[];
   getFavorites: () => Contact[];
@@ -32,25 +36,72 @@ export const useContactsStore = create<ContactsState>((set, get) => ({
   loading: false,
   error: null,
   searchQuery: '',
-  
-  loadContactsFromStorage: async () => {
-    set({ loading: true, error: null });
+  syncStatus: 'idle',
+  totalCount: 0,
+  lastSyncTime: null,
+
+  loadContacts: async () => {
+    set({ loading: true, error: null, syncStatus: 'loading' });
+    
     try {
-      const initialized = await isInitialized();
-      let contacts = await loadContacts();
-      
-      if (!initialized || contacts.length === 0) {
-        contacts = createSampleContacts();
-        await saveContacts(contacts);
-        await setInitialized(true);
-      }
-      
-      set({ contacts, loading: false });
+      const cached = await loadContacts();
+      set({ contacts: cached, loading: false, syncStatus: 'idle', totalCount: cached.length });
     } catch (error) {
-      set({ error: 'Failed to load contacts', loading: false });
+      set({ loading: false, syncStatus: 'error' });
     }
   },
-  
+
+  syncFromPhone: async () => {
+    set({ syncStatus: 'syncing', error: null });
+    
+    try {
+      console.log('[Store] Checking permission...');
+      const permission = await checkContactsPermission();
+      console.log('[Store] Permission result:', permission);
+      
+      if (!permission.granted) {
+        set({ syncStatus: 'idle' });
+        return false;
+      }
+
+      console.log('[Store] Fetching from phone...');
+      const result = await fetchPhoneContacts();
+      console.log('[Store] Fetch result:', result);
+      
+      if (!result.success) {
+        set({ error: result.error?.message || 'Failed to fetch contacts', syncStatus: 'error' });
+        return false;
+      }
+
+      const contacts = result.contacts || [];
+      await saveContacts(contacts);
+      
+      set({ 
+        contacts, 
+        syncStatus: 'idle', 
+        totalCount: result.totalCount,
+        lastSyncTime: Date.now(),
+        error: null,
+      });
+      
+      return true;
+    } catch (error) {
+      console.error('[Store] Error:', error);
+      const message = error instanceof Error ? error.message : 'Failed to sync contacts';
+      set({ error: message, syncStatus: 'error' });
+      return false;
+    }
+  },
+
+  requestPermission: async () => {
+    try {
+      const result = await requestContactsPermission();
+      return result.granted;
+    } catch (error) {
+      return false;
+    }
+  },
+
   addContact: async (contactData) => {
     const now = Date.now();
     const newContact: Contact = {
@@ -66,10 +117,9 @@ export const useContactsStore = create<ContactsState>((set, get) => ({
     
     return newContact;
   },
-  
+
   updateContact: async (id, updates) => {
-    const contacts = get().contacts;
-    const updatedContacts = contacts.map((contact) =>
+    const updatedContacts = get().contacts.map((contact) =>
       contact.id === id
         ? { ...contact, ...updates, updatedAt: Date.now() }
         : contact
@@ -78,50 +128,36 @@ export const useContactsStore = create<ContactsState>((set, get) => ({
     set({ contacts: updatedContacts });
     await saveContacts(updatedContacts);
   },
-  
+
   deleteContact: async (id) => {
-    const contacts = get().contacts;
-    const updatedContacts = contacts.filter((contact) => contact.id !== id);
-    
+    const updatedContacts = get().contacts.filter((contact) => contact.id !== id);
     set({ contacts: updatedContacts });
     await saveContacts(updatedContacts);
   },
-  
+
   toggleFavorite: async (id) => {
-    const contacts = get().contacts;
-    const contact = contacts.find((c) => c.id === id);
-    
+    const contact = get().contacts.find((c) => c.id === id);
     if (contact) {
       await get().updateContact(id, { isFavorite: !contact.isFavorite });
     }
   },
-  
-  getContactById: (id) => {
-    return get().contacts.find((contact) => contact.id === id);
-  },
-  
-  setSearchQuery: (query) => {
-    set({ searchQuery: query });
-  },
-  
-  getSortedContacts: () => {
-    return sortContacts(get().contacts);
-  },
-  
+
+  getContactById: (id) => get().contacts.find((contact) => contact.id === id),
+
+  setSearchQuery: (query) => set({ searchQuery: query }),
+
+  getSortedContacts: () => sortContacts(get().contacts),
+
   getContactsByLetter: () => {
     const filtered = get().getFilteredContacts();
     return groupContactsByLetter(filtered);
   },
-  
-  getFavorites: () => {
-    return sortContacts(get().contacts.filter((c) => c.isFavorite));
-  },
-  
+
+  getFavorites: () => sortContacts(get().contacts.filter((c) => c.isFavorite)),
+
   getFilteredContacts: () => {
     const { contacts, searchQuery } = get();
-    if (!searchQuery.trim()) {
-      return contacts;
-    }
+    if (!searchQuery.trim()) return contacts;
     return searchContacts(contacts, searchQuery);
   },
 }));

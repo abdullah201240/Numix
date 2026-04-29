@@ -7,17 +7,20 @@ import {
   RefreshControl,
   SectionList,
   StyleSheet,
+  Text,
   View
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AlphabetIndex } from '../../components/contacts/AlphabetIndex';
 import { ContactListItem } from '../../components/contacts/ContactListItem';
 import { ContactListSection } from '../../components/contacts/ContactListSection';
+import { ContactsPermissionScreen } from '../../components/contacts/ContactsPermissionScreen';
 import { EmptyState } from '../../components/contacts/EmptyState';
 import { SearchBar } from '../../components/contacts/SearchBar';
 import { Colors, Spacing, Typography } from '../../constants/theme';
 import { useContactsStore } from '../../store/contactsStore';
 import { Contact } from '../../types/contact';
+import { checkContactsPermission, requestContactsPermission } from '../../services/contactsApi';
 
 type SectionData = {
   title: string;
@@ -32,8 +35,12 @@ export default function ContactsListScreen() {
   const {
     contacts,
     loading,
+    error,
     searchQuery,
-    loadContactsFromStorage,
+    syncStatus,
+    loadContacts,
+    syncFromPhone,
+    requestPermission,
     setSearchQuery,
     toggleFavorite,
     getContactsByLetter,
@@ -41,19 +48,47 @@ export default function ContactsListScreen() {
 
   const [currentLetter, setCurrentLetter] = useState<string>('');
   const [refreshing, setRefreshing] = useState(false);
+  const [showPermissionScreen, setShowPermissionScreen] = useState(true);
+  const [isRequestingPermission, setIsRequestingPermission] = useState(false);
+  const hasCheckedPermission = useRef(false);
 
   const sections = getContactsByLetter();
-  const totalContacts = contacts.length;
 
   useEffect(() => {
-    loadContactsFromStorage();
+    const init = async () => {
+      if (hasCheckedPermission.current) return;
+      hasCheckedPermission.current = true;
+      
+      const permission = await checkContactsPermission();
+      
+      if (permission.granted) {
+        setShowPermissionScreen(false);
+        await loadContacts();
+      } else {
+        setShowPermissionScreen(true);
+      }
+    };
+    
+    init();
+  }, []);
+
+  const handleRequestPermission = useCallback(async () => {
+    setIsRequestingPermission(true);
+    try {
+      const granted = await requestPermission();
+      if (granted) {
+        setShowPermissionScreen(false);
+      }
+    } finally {
+      setIsRequestingPermission(false);
+    }
   }, []);
 
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
-    await loadContactsFromStorage();
+    await syncFromPhone();
     setRefreshing(false);
-  }, [loadContactsFromStorage]);
+  }, [syncFromPhone]);
 
   const handleContactPress = useCallback((contact: Contact) => {
     router.push(`/contacts/${contact.id}`);
@@ -99,10 +134,34 @@ export default function ContactsListScreen() {
     index,
   }), []);
 
+  if (showPermissionScreen) {
+    return (
+      <ContactsPermissionScreen
+        permissionStatus="undetermined"
+        onRequestPermission={handleRequestPermission}
+        isChecking={isRequestingPermission}
+      />
+    );
+  }
+
   if (loading && contacts.length === 0) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={Colors.tint} />
+        <Text style={styles.loadingText}>Loading contacts...</Text>
+      </View>
+    );
+  }
+
+  if (error && contacts.length === 0) {
+    return (
+      <View style={styles.errorContainer}>
+        <Ionicons name="warning" size={48} color={Colors.red} />
+        <Text style={styles.errorTitle}>Unable to Load Contacts</Text>
+        <Text style={styles.errorMessage}>{error}</Text>
+        <Pressable style={styles.retryButton} onPress={syncFromPhone}>
+          <Text style={styles.retryButtonText}>Retry</Text>
+        </Pressable>
       </View>
     );
   }
@@ -134,10 +193,8 @@ export default function ContactsListScreen() {
       {sections.length === 0 ? (
         <EmptyState
           title="No Contacts"
-          subtitle="Add your first contact to get started"
+          subtitle="No contacts found on your device"
           icon="people-outline"
-          actionLabel="Add Contact"
-          onAction={handleAddContact}
         />
       ) : (
         <View style={styles.listContainer}>
@@ -188,19 +245,42 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: Colors.background,
+    padding: Spacing.xl,
   },
-  headerContainer: {
-    alignItems: 'flex-start',
+  loadingText: {
+    ...Typography.body,
+    color: Colors.textSecondary,
+    marginTop: Spacing.md,
   },
-  headerTitle: {
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: Colors.background,
+    padding: Spacing.xl,
+  },
+  errorTitle: {
     ...Typography.title3,
     color: Colors.textPrimary,
-    fontWeight: '700',
+    marginTop: Spacing.lg,
+    textAlign: 'center',
   },
-  headerSubtitle: {
-    ...Typography.caption1,
+  errorMessage: {
+    ...Typography.body,
     color: Colors.textSecondary,
-    marginTop: 2,
+    marginTop: Spacing.sm,
+    textAlign: 'center',
+  },
+  retryButton: {
+    marginTop: Spacing.xl,
+    backgroundColor: Colors.tint,
+    paddingHorizontal: Spacing.xl,
+    paddingVertical: Spacing.md,
+    borderRadius: 8,
+  },
+  retryButtonText: {
+    ...Typography.headline,
+    color: Colors.background,
   },
   listContainer: {
     flex: 1,

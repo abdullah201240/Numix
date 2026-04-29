@@ -11,9 +11,9 @@ import {
     TextInput,
     View,
 } from 'react-native';
-import { v4 as uuidv4 } from 'uuid';
 import { BorderRadius, Colors, HitSlop, Spacing, Typography } from '../../constants/theme';
 import { Contact, EMAIL_LABELS, EmailAddress, EmailLabel } from '../../types/contact';
+import { generateId } from '../../utils/uuid';
 import { PhoneInput } from './PhoneInput';
 
 interface ContactFormProps {
@@ -32,7 +32,7 @@ export const ContactForm: React.FC<ContactFormProps> = ({
   const [firstName, setFirstName] = useState(initialData?.firstName || '');
   const [lastName, setLastName] = useState(initialData?.lastName || '');
   const [phones, setPhones] = useState(initialData?.phones || [
-    { id: uuidv4(), label: 'mobile' as const, number: '' },
+    { id: generateId(), label: 'mobile' as const, number: '' },
   ]);
   const [emails, setEmails] = useState<EmailAddress[]>(initialData?.emails || []);
   const [company, setCompany] = useState(initialData?.company || '');
@@ -47,7 +47,7 @@ export const ContactForm: React.FC<ContactFormProps> = ({
 
   const addEmail = () => {
     const newEmail: EmailAddress = {
-      id: uuidv4(),
+      id: generateId(),
       label: 'home',
       email: '',
     };
@@ -79,6 +79,7 @@ export const ContactForm: React.FC<ContactFormProps> = ({
       phones: validPhones,
       emails: validEmails,
       company: company.trim(),
+      jobTitle: '',
       address: address.trim(),
       notes: notes.trim(),
       isFavorite: initialData?.isFavorite || false,

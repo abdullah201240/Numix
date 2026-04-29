@@ -1,9 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import { Alert, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
-import { v4 as uuidv4 } from 'uuid';
 import { BorderRadius, Colors, HitSlop, Spacing, Typography } from '../../constants/theme';
 import { PHONE_LABELS, PhoneLabel, PhoneNumber } from '../../types/contact';
+import { generateId } from '../../utils/uuid';
 
 interface PhoneInputProps {
   phones: PhoneNumber[];
@@ -15,7 +15,7 @@ export const PhoneInput: React.FC<PhoneInputProps> = ({ phones, onChange }) => {
 
   const addPhone = () => {
     const newPhone: PhoneNumber = {
-      id: uuidv4(),
+      id: generateId(),
       label: 'mobile',
       number: '',
     };

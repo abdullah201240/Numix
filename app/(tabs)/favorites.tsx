@@ -22,7 +22,7 @@ export default function FavoritesScreen() {
   
   const {
     loading,
-    loadContactsFromStorage,
+    syncFromPhone,
     toggleFavorite,
     getFavorites,
   } = useContactsStore();
@@ -31,14 +31,14 @@ export default function FavoritesScreen() {
   const favorites = getFavorites();
 
   useEffect(() => {
-    loadContactsFromStorage();
+    syncFromPhone();
   }, []);
 
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
-    await loadContactsFromStorage();
+    await syncFromPhone();
     setRefreshing(false);
-  }, [loadContactsFromStorage]);
+  }, [syncFromPhone]);
 
   const handleContactPress = useCallback((contact: Contact) => {
     router.push(`/contacts/${contact.id}`);

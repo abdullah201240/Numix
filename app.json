@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "Numix",
-    "slug": "Numix",
+    "slug": "numix",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -14,26 +14,54 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.numix.app",
+      "infoPlist": {
+        "NSContactsUsageDescription": "Numix needs access to your contacts to help you manage and connect with your network.",
+        "NSFaceIDUsageDescription": "Numix uses Face ID to secure your contacts."
+      }
     },
     "android": {
+      "package": "com.numix.app",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
+      "permissions": ["READ_CONTACTS", "WRITE_CONTACTS"],
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false
     },
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/favicon.png",
+      "meta": {
+        "title": "Numix - Contacts Manager",
+        "description": "A modern contacts management app"
+      }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "your-eas-project-id"
+      }
     },
     "plugins": [
-      "expo-router"
+      "expo-router",
+      "expo-contacts"
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "build": {
+      "devClient": false,
+      "ios": {
+        "simulator": {
+          "buildType": "debug"
+        }
+      },
+      "android": {
+        "apkTargetDir": "dist"
+      }
     }
   }
 }
