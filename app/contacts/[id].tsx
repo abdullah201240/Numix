@@ -74,7 +74,7 @@ export default function ContactDetailsScreen() {
       const phoneUrl = `tel:${contact.phones[0].number.replace(/\D/g, '')}`;
       const supported = await Linking.canOpenURL(phoneUrl);
       if (supported) {
-        await addRecent(contact.id, fullName, 'outgoing');
+        await addRecent(contact.id, fullName, contact.phones[0].number, 'outgoing');
         Linking.openURL(phoneUrl);
       } else {
         Alert.alert('Cannot make calls on this device');
@@ -100,7 +100,7 @@ export default function ContactDetailsScreen() {
     const supported = await Linking.canOpenURL(phoneUrl);
     if (supported) {
       if (contact) {
-        await addRecent(contact.id, fullName, 'outgoing');
+        await addRecent(contact.id, fullName, number, 'outgoing');
       }
       Linking.openURL(phoneUrl);
     } else {

@@ -1,8 +1,8 @@
 import { create } from 'zustand';
+import { checkContactsPermission, fetchPhoneContacts, requestContactsPermission } from '../services/contactsApi';
+import { loadContacts, saveContacts } from '../services/storage';
 import { Contact } from '../types/contact';
 import { groupContactsByLetter, searchContacts, sortContacts } from '../utils/contacts';
-import { fetchPhoneContacts, checkContactsPermission, requestContactsPermission } from '../services/contactsApi';
-import { saveContacts, loadContacts } from '../services/storage';
 import { generateId } from '../utils/uuid';
 
 export type SyncStatus = 'idle' | 'loading' | 'syncing' | 'error';
@@ -46,6 +46,9 @@ export const useContactsStore = create<ContactsState>((set, get) => ({
     try {
       const cached = await loadContacts();
       set({ contacts: cached, loading: false, syncStatus: 'idle', totalCount: cached.length });
+      
+      // Auto-sync from phone after loading cache
+      await get().syncFromPhone();
     } catch (error) {
       set({ loading: false, syncStatus: 'error' });
     }
@@ -69,11 +72,27 @@ export const useContactsStore = create<ContactsState>((set, get) => ({
         return false;
       }
 
-      const contacts = result.contacts || [];
-      await saveContacts(contacts);
+      const phoneContacts = result.contacts || [];
+      const currentContacts = get().contacts;
+      
+      // Preserve favorite status from existing contacts
+      const favoriteMap = new Map<string, boolean>();
+      currentContacts.forEach((c) => {
+        if (c.isFavorite) {
+          favoriteMap.set(c.id, true);
+        }
+      });
+      
+      // Merge: apply favorite status to synced contacts
+      const mergedContacts = phoneContacts.map((contact) => ({
+        ...contact,
+        isFavorite: favoriteMap.get(contact.id) || contact.isFavorite,
+      }));
+      
+      await saveContacts(mergedContacts);
       
       set({ 
-        contacts, 
+        contacts: mergedContacts, 
         syncStatus: 'idle', 
         totalCount: result.totalCount,
         lastSyncTime: Date.now(),

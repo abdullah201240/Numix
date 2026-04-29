@@ -155,11 +155,13 @@ export default function RecentsScreen() {
 
   useEffect(() => {
     loadRecentsFromStorage();
-  }, []);
+  }, [loadRecentsFromStorage]);
 
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
-    await loadRecentsFromStorage();
+    await Promise.all([
+      loadRecentsFromStorage(),
+    ]);
     setRefreshing(false);
   }, [loadRecentsFromStorage]);
 
@@ -310,7 +312,11 @@ export default function RecentsScreen() {
         activeTab === 'missed' ? (
           <EmptyState title="No Missed Calls" subtitle="No missed calls" icon="call-outline" />
         ) : (
-          <EmptyState title="No Recents" subtitle="Your call history will appear here" icon="call-outline" />
+          <EmptyState 
+            title="No Recents" 
+            subtitle="Calls made from this app will appear here.\nNote: iOS doesn't allow access to phone call history." 
+            icon="call-outline" 
+          />
         )
       ) : (
         <FlatList

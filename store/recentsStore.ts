@@ -1,6 +1,6 @@
 import { create } from 'zustand';
-import { CallType, RecentCall } from '../types/contact';
 import { loadRecents, saveRecents } from '../services/recentsStorage';
+import { CallType, RecentCall } from '../types/contact';
 import { generateId } from '../utils/uuid';
 
 interface RecentsState {
@@ -9,7 +9,7 @@ interface RecentsState {
   
   // Actions
   loadRecentsFromStorage: () => Promise<void>;
-  addRecent: (contactId: string, contactName: string, type: CallType, duration?: number) => Promise<void>;
+  addRecent: (contactId: string, contactName: string, phoneNumber: string, type: CallType, duration?: number) => Promise<void>;
   clearRecents: () => Promise<void>;
   deleteRecent: (id: string) => Promise<void>;
 }
@@ -28,11 +28,12 @@ export const useRecentsStore = create<RecentsState>((set, get) => ({
     }
   },
   
-  addRecent: async (contactId, contactName, type, duration = 0) => {
+  addRecent: async (contactId, contactName, phoneNumber, type, duration = 0) => {
     const newRecent: RecentCall = {
       id: generateId(),
       contactId,
       contactName,
+      phoneNumber,
       type,
       timestamp: Date.now(),
       duration,
