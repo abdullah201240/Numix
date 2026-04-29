@@ -30,6 +30,7 @@ export interface RecentCall {
   id: string;
   contactId: string;
   contactName: string;
+  phoneNumber: string;
   type: 'incoming' | 'outgoing' | 'missed';
   timestamp: number;
   duration: number; // in seconds

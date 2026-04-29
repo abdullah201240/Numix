@@ -10,12 +10,12 @@ import {
   RefreshControl,
   StyleSheet,
   Text,
-  TextInput,
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ContactAvatar } from '../../components/contacts/ContactAvatar';
 import { EmptyState } from '../../components/contacts/EmptyState';
+import { SearchBar } from '../../components/contacts/SearchBar';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useRecentsStore } from '../../store/recentsStore';
 import { RecentCall } from '../../types/contact';
@@ -151,6 +151,7 @@ export default function RecentsScreen() {
   const [activeTab, setActiveTab] = useState<'all' | 'missed'>('all');
   const [sliderPosition] = useState(new Animated.Value(0));
   const [tabWidth, setTabWidth] = useState(0);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     loadRecentsFromStorage();
@@ -178,7 +179,11 @@ export default function RecentsScreen() {
   );
 
   const filtered = recents.filter((r) => {
-    return activeTab !== 'missed' || r.type === 'missed';
+    const matchesTab = activeTab !== 'missed' || r.type === 'missed';
+    const matchesSearch = searchQuery === '' || 
+      r.contactName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      r.phoneNumber.includes(searchQuery);
+    return matchesTab && matchesSearch;
   });
 
   const listData = useMemo(() => groupByDay(filtered), [filtered]);
@@ -217,7 +222,24 @@ export default function RecentsScreen() {
         tintColor={isDark ? '#000000' : '#FFFFFF'}
         style={styles.glassHeader} 
       />
-      <View style={[styles.header, { paddingTop: insets.top + 4, backgroundColor: 'transparent' }]}>
+      <View style={[styles.header, { paddingTop: insets.top + 8, backgroundColor: 'transparent' }]}>
+        <View style={styles.titleRow}>
+          <Text style={[styles.title, { color: colors.textPrimary }]}>
+            Recents
+          </Text>
+          {recents.length > 0 && (
+            <Pressable onPress={clearRecents} hitSlop={8}>
+              <Text style={[styles.clearButton, { color: colors.tint }]}>Clear</Text>
+            </Pressable>
+          )}
+        </View>
+
+        <SearchBar
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          placeholder="Search recents"
+        />
+
         <View style={styles.tabContainer}>
           <View 
             style={styles.tabWrapper}
@@ -281,22 +303,6 @@ export default function RecentsScreen() {
               </Text>
             </Pressable>
           </View>
-          <View style={{ flex: 1 }} />
-          {recents.length > 0 && (
-            <Pressable onPress={clearRecents} hitSlop={8}>
-              <Text style={[styles.clearButton, { color: colors.tint }]}>Clear</Text>
-            </Pressable>
-          )}
-        </View>
-
-        <View style={[styles.searchInput, { backgroundColor: colors.searchBackground }]}>
-          <Ionicons name="search" size={18} color={colors.textSecondary} />
-          <TextInput
-            style={[styles.searchTextInput, { color: colors.textPrimary }]}
-            placeholder="Search"
-            placeholderTextColor={colors.textSecondary}
-            returnKeyType="search"
-          />
         </View>
       </View>
 
@@ -340,6 +346,18 @@ const styles = StyleSheet.create({
   header: {
     paddingHorizontal: 16,
     paddingTop: 8,
+  },
+  titleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+    paddingHorizontal: 2,
+  },
+  title: {
+    fontSize: 34,
+    fontWeight: '700',
+    letterSpacing: -0.5,
   },
   tabContainer: {
     flexDirection: 'row',
@@ -390,18 +408,7 @@ const styles = StyleSheet.create({
   },
   clearButton: {
     fontSize: 17,
-  },
-  searchInput: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    height: 44,
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    gap: 10,
-  },
-  searchTextInput: {
-    flex: 1,
-    fontSize: 17,
+    fontWeight: '500',
   },
   sectionHeader: {
     paddingTop: 20,
