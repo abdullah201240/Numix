@@ -12,6 +12,7 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { AddContactModal } from '../../components/contacts/AddContactModal';
 import { AlphabetIndex } from '../../components/contacts/AlphabetIndex';
 import { ContactListItem } from '../../components/contacts/ContactListItem';
 import { ContactsPermissionScreen } from '../../components/contacts/ContactsPermissionScreen';
@@ -50,6 +51,7 @@ export default function ContactsListScreen() {
   const [showPermissionScreen, setShowPermissionScreen] = useState(true);
   const [isRequestingPermission, setIsRequestingPermission] = useState(false);
   const [showThemeModal, setShowThemeModal] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
   const hasCheckedPermission = useRef(false);
 
   const sections = getContactsByLetter();
@@ -93,8 +95,12 @@ export default function ContactsListScreen() {
   }, [router]);
 
   const handleAddContact = useCallback(() => {
-    router.push('/contacts/add');
-  }, [router]);
+    setShowAddModal(true);
+  }, []);
+
+  const handleCloseModal = useCallback(() => {
+    setShowAddModal(false);
+  }, []);
 
   const handleLetterSelect = useCallback((letter: string) => {
     const idx = listData.current.findIndex(
@@ -304,6 +310,9 @@ export default function ContactsListScreen() {
           </View>
         </Pressable>
       </Modal>
+
+      {/* Add Contact Modal */}
+      <AddContactModal visible={showAddModal} onClose={handleCloseModal} />
     </View>
   );
 }

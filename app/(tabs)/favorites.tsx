@@ -11,6 +11,7 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { AddContactModal } from '../../components/contacts/AddContactModal';
 import { ContactListItem } from '../../components/contacts/ContactListItem';
 import { EmptyState } from '../../components/contacts/EmptyState';
 import { SearchBar } from '../../components/contacts/SearchBar';
@@ -33,6 +34,7 @@ export default function FavoritesScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [localSearch, setLocalSearch] = useState('');
   const [forceUpdate, setForceUpdate] = useState(0);
+  const [showAddModal, setShowAddModal] = useState(false);
 
   // Refresh when screen comes into focus
   useFocusEffect(
@@ -68,7 +70,13 @@ export default function FavoritesScreen() {
     [toggleFavorite]
   );
 
-  const handleAddContact = useCallback(() => router.push('/contacts/add'), [router]);
+  const handleAddContact = useCallback(() => {
+    setShowAddModal(true);
+  }, []);
+
+  const handleCloseModal = useCallback(() => {
+    setShowAddModal(false);
+  }, []);
 
   const renderItem = useCallback(
     ({ item, index }: { item: Contact; index: number }) => (
@@ -144,6 +152,9 @@ export default function FavoritesScreen() {
           windowSize={8}
         />
       )}
+
+      {/* Add Contact Modal */}
+      <AddContactModal visible={showAddModal} onClose={handleCloseModal} />
     </View>
   );
 }

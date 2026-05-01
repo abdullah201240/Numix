@@ -1,9 +1,8 @@
 import { create } from 'zustand';
-import { checkContactsPermission, fetchPhoneContacts, requestContactsPermission } from '../services/contactsApi';
+import { checkContactsPermission, deleteContactFromPhone, fetchPhoneContacts, requestContactsPermission, saveContactToPhone, updateContactInPhone } from '../services/contactsApi';
 import { loadContacts, saveContacts } from '../services/storage';
 import { Contact } from '../types/contact';
 import { groupContactsByLetter, searchContacts, sortContacts } from '../utils/contacts';
-import { generateId } from '../utils/uuid';
 
 export type SyncStatus = 'idle' | 'loading' | 'syncing' | 'error';
 
@@ -117,36 +116,66 @@ export const useContactsStore = create<ContactsState>((set, get) => ({
   },
 
   addContact: async (contactData) => {
-    const now = Date.now();
-    const newContact: Contact = {
-      ...contactData,
-      id: generateId(),
-      createdAt: now,
-      updatedAt: now,
-    };
-    
-    const updatedContacts = [...get().contacts, newContact];
-    set({ contacts: updatedContacts });
-    await saveContacts(updatedContacts);
-    
-    return newContact;
+    try {
+      // First save to phone's native contacts
+      const phoneContactId = await saveContactToPhone(contactData);
+      
+      // Then save to app storage with the phone's contact ID
+      const now = Date.now();
+      const newContact: Contact = {
+        ...contactData,
+        id: phoneContactId, // Use the phone's contact ID
+        createdAt: now,
+        updatedAt: now,
+      };
+      
+      const updatedContacts = [...get().contacts, newContact];
+      set({ contacts: updatedContacts });
+      await saveContacts(updatedContacts);
+      
+      return newContact;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to add contact';
+      set({ error: message });
+      throw error;
+    }
   },
 
   updateContact: async (id, updates) => {
-    const updatedContacts = get().contacts.map((contact) =>
-      contact.id === id
-        ? { ...contact, ...updates, updatedAt: Date.now() }
-        : contact
-    );
-    
-    set({ contacts: updatedContacts });
-    await saveContacts(updatedContacts);
+    try {
+      // Update in phone's native contacts
+      await updateContactInPhone(id, updates);
+      
+      // Update in app storage
+      const updatedContacts = get().contacts.map((contact) =>
+        contact.id === id
+          ? { ...contact, ...updates, updatedAt: Date.now() }
+          : contact
+      );
+      
+      set({ contacts: updatedContacts });
+      await saveContacts(updatedContacts);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to update contact';
+      set({ error: message });
+      throw error;
+    }
   },
 
   deleteContact: async (id) => {
-    const updatedContacts = get().contacts.filter((contact) => contact.id !== id);
-    set({ contacts: updatedContacts });
-    await saveContacts(updatedContacts);
+    try {
+      // Delete from phone's native contacts
+      await deleteContactFromPhone(id);
+      
+      // Delete from app storage
+      const updatedContacts = get().contacts.filter((contact) => contact.id !== id);
+      set({ contacts: updatedContacts });
+      await saveContacts(updatedContacts);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to delete contact';
+      set({ error: message });
+      throw error;
+    }
   },
 
   toggleFavorite: async (id) => {

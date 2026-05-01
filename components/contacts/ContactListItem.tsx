@@ -42,6 +42,7 @@ export const ContactListItem: React.FC<ContactListItemProps> = ({
           firstName={contact.firstName}
           lastName={contact.lastName}
           size="small"
+          imageUrl={contact.imageUri}
         />
         
         <Text 

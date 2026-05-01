@@ -1,7 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
-import React, { useState } from 'react';
+import * as ImagePicker from 'expo-image-picker';
+import React, { forwardRef, useImperativeHandle, useState } from 'react';
 import {
     Alert,
+    Image,
     KeyboardAvoidingView,
     Platform,
     Pressable,
@@ -23,12 +25,15 @@ interface ContactFormProps {
   onDelete?: () => void;
 }
 
-export const ContactForm: React.FC<ContactFormProps> = ({
-  initialData,
+export interface ContactFormRef {
+  save: () => void;
+}
+
+export const ContactForm = forwardRef<ContactFormRef, ContactFormProps>(({  initialData,
   onSave,
   onCancel,
   onDelete,
-}) => {
+}, ref) => {
   const { colors } = useTheme();
   const [firstName, setFirstName] = useState(initialData?.firstName || '');
   const [lastName, setLastName] = useState(initialData?.lastName || '');
@@ -40,7 +45,13 @@ export const ContactForm: React.FC<ContactFormProps> = ({
   const [jobTitle, setJobTitle] = useState(initialData?.jobTitle || '');
   const [address, setAddress] = useState(initialData?.address || '');
   const [notes, setNotes] = useState(initialData?.notes || '');
+  const [imageUri, setImageUri] = useState(initialData?.imageUri || '');
   const [showEmailLabels, setShowEmailLabels] = useState<string | null>(null);
+
+  // Expose save function to parent via ref
+  useImperativeHandle(ref, () => ({
+    save: handleSave,
+  }));
 
   const getLabelDisplay = (label: EmailLabel): string => {
     const found = EMAIL_LABELS.find((l) => l.value === label);
@@ -66,6 +77,30 @@ export const ContactForm: React.FC<ContactFormProps> = ({
     setEmails(emails.filter((email) => email.id !== id));
   };
 
+  const pickImage = async () => {
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    
+    if (!permissionResult.granted) {
+      Alert.alert('Permission Required', 'Please allow access to your photo library to add a contact photo.');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+
+    if (!result.canceled && result.assets[0]) {
+      setImageUri(result.assets[0].uri);
+    }
+  };
+
+  const removeImage = () => {
+    setImageUri('');
+  };
+
   const handleSave = () => {
     if (!firstName.trim() && !lastName.trim()) {
       Alert.alert('Error', 'Please enter a name for the contact');
@@ -84,6 +119,7 @@ export const ContactForm: React.FC<ContactFormProps> = ({
       jobTitle: jobTitle.trim(),
       address: address.trim(),
       notes: notes.trim(),
+      imageUri: imageUri || undefined,
       isFavorite: initialData?.isFavorite || false,
     });
   };
@@ -101,10 +137,32 @@ export const ContactForm: React.FC<ContactFormProps> = ({
 
   return (
     <KeyboardAvoidingView
-      style={[styles.container, { backgroundColor: colors.background }]}
+      style={[styles.container, { backgroundColor: colors.tertiaryBackground }]}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <ScrollView style={styles.scrollView} keyboardShouldPersistTaps="handled">
+        {/* Photo */}
+        <View style={styles.section}>
+          <Text style={[styles.sectionHeader, { color: colors.textSecondary }]}>photo</Text>
+          <View style={[styles.card, { backgroundColor: colors.card, alignItems: 'center', paddingVertical: 20 }]}>
+            <Pressable onPress={pickImage} style={styles.photoContainer}>
+              {imageUri ? (
+                <>
+                  <Image source={{ uri: imageUri }} style={styles.contactPhoto} />
+                  <Pressable onPress={removeImage} style={styles.removePhotoButton}>
+                    <Ionicons name="close-circle" size={24} color="#FF3B30" />
+                  </Pressable>
+                </>
+              ) : (
+                <View style={styles.addPhotoButton}>
+                  <Ionicons name="camera-outline" size={32} color={colors.tint} />
+                  <Text style={[styles.addPhotoText, { color: colors.tint }]}>Add Photo</Text>
+                </View>
+              )}
+            </Pressable>
+          </View>
+        </View>
+
         {/* Name */}
         <View style={styles.section}>
           <Text style={[styles.sectionHeader, { color: colors.textSecondary }]}>name</Text>
@@ -283,7 +341,7 @@ export const ContactForm: React.FC<ContactFormProps> = ({
       </ScrollView>
     </KeyboardAvoidingView>
   );
-};
+});
 
 const styles = StyleSheet.create({
   container: {
@@ -391,6 +449,33 @@ const styles = StyleSheet.create({
   deleteButtonText: {
     fontSize: 17,
     fontWeight: '400',
+    letterSpacing: -0.41,
+  },
+  photoContainer: {
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  contactPhoto: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    resizeMode: 'cover',
+  },
+  removePhotoButton: {
+    position: 'absolute',
+    top: 0,
+    right: '50%',
+    marginRight: -70,
+  },
+  addPhotoButton: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  addPhotoText: {
+    fontSize: 17,
+    fontWeight: '600',
     letterSpacing: -0.41,
   },
 });

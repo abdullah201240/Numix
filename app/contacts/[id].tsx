@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
     Alert,
     Linking,
@@ -17,6 +17,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ContactAvatar } from '../../components/contacts/ContactAvatar';
+import { EditContactModal } from '../../components/contacts/EditContactModal';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useContactsStore } from '../../store/contactsStore';
 import { EMAIL_LABELS, PHONE_LABELS } from '../../types/contact';
@@ -32,6 +33,7 @@ export default function ContactDetailsScreen() {
 
   const contact = getContactById(id);
   const fullName = contact ? getFullName(contact) : '';
+  const [showEditModal, setShowEditModal] = useState(false);
 
   const heartScale = useSharedValue(1);
 
@@ -46,8 +48,12 @@ export default function ContactDetailsScreen() {
   }, [id, toggleFavorite]);
 
   const handleEdit = useCallback(() => {
-    router.push(`/contacts/edit/${id}`);
-  }, [router, id]);
+    setShowEditModal(true);
+  }, []);
+
+  const handleCloseEditModal = useCallback(() => {
+    setShowEditModal(false);
+  }, []);
 
   const handleDelete = useCallback(() => {
     Alert.alert(
@@ -148,6 +154,7 @@ export default function ContactDetailsScreen() {
             firstName={contact.firstName}
             lastName={contact.lastName}
             size="xlarge"
+            imageUrl={contact.imageUri}
           />
           <Text style={[styles.name, { color: colors.textPrimary }]}>{fullName}</Text>
           {contact.company && (
@@ -292,6 +299,13 @@ export default function ContactDetailsScreen() {
           </Pressable>
         </View>
       </ScrollView>
+
+      {/* Edit Contact Modal */}
+      <EditContactModal
+        visible={showEditModal}
+        contactId={id}
+        onClose={handleCloseEditModal}
+      />
     </View>
   );
 }
