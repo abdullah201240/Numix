@@ -44,44 +44,46 @@ export const AddContactModal: React.FC<AddContactModalProps> = ({ visible, onClo
       animationType="slide"
       transparent={true}
       onRequestClose={onClose}
-      style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
     >
-      <View style={[styles.modalContent, { backgroundColor: colors.tertiaryBackground }]}>
-        {/* Modal Header */}
-        <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
-          <Pressable onPress={handleCancel} hitSlop={12} style={styles.headerButton}>
-            <Text style={[styles.cancelButton, { color: colors.tint }]}>Cancel</Text>
-          </Pressable>
-          
-          <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>New Contact</Text>
-          
-          <Pressable onPress={handleDone} hitSlop={12} style={styles.headerButton}>
-            <Text style={[styles.doneButton, { color: colors.tint }]}>Done</Text>
-          </Pressable>
-        </View>
+      <View style={styles.modalOverlay}>
+        <View style={[styles.container, { backgroundColor: colors.tertiaryBackground, paddingBottom: insets.bottom }]}>
+          {/* Modal Header */}
+          <View style={[styles.header, { paddingTop: 20 }]}>
+            <Pressable onPress={handleCancel} hitSlop={12} style={styles.headerButton}>
+              <Text style={[styles.cancelButton, { color: colors.tint }]}>Cancel</Text>
+            </Pressable>
+            
+            <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>New Contact</Text>
+            
+            <Pressable onPress={handleDone} hitSlop={12} style={styles.headerButton}>
+              <Text style={[styles.doneButton, { color: colors.tint }]}>Done</Text>
+            </Pressable>
+          </View>
 
-        {/* Contact Form */}
-        <ContactForm
-          ref={formRef}
-          onSave={handleSave}
-          onCancel={handleCancel}
-        />
+          {/* Contact Form */}
+          <ContactForm
+            ref={formRef}
+            onSave={handleSave}
+            onCancel={handleCancel}
+          />
+        </View>
       </View>
     </Modal>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
+  modalOverlay: {
     flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.4)',
     justifyContent: 'flex-end',
   },
-  modalContent: {
-    backgroundColor: 'white',
+  container: {
     borderTopLeftRadius: 32,
     borderTopRightRadius: 32,
-    maxHeight: '90%',
+    height: '92%',
     width: '100%',
+    overflow: 'hidden',
   },
   header: {
     flexDirection: 'row',

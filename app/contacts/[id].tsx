@@ -1,24 +1,25 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
+import { BlurView } from 'expo-blur';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useCallback, useState } from 'react';
 import {
-    Alert,
-    Linking,
-    Pressable,
-    ScrollView,
-    StyleSheet,
-    Text,
-    View,
+  Alert,
+  Linking,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View
 } from 'react-native';
 import Animated, {
-    useAnimatedStyle,
-    useSharedValue,
-    withSpring,
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ContactAvatar } from '../../components/contacts/ContactAvatar';
 import { EditContactModal } from '../../components/contacts/EditContactModal';
-import { useTheme } from '../../contexts/ThemeContext';
 import { useContactsStore } from '../../store/contactsStore';
 import { EMAIL_LABELS, PHONE_LABELS } from '../../types/contact';
 import { getFullName } from '../../utils/contacts';
@@ -27,7 +28,6 @@ export default function ContactDetailsScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { colors } = useTheme();
 
   const { getContactById, toggleFavorite, deleteContact } = useContactsStore();
 
@@ -124,183 +124,176 @@ export default function ContactDetailsScreen() {
 
   if (!contact) {
     return (
-      <View style={[styles.container, { backgroundColor: colors.background }]}>
-        <Text style={[styles.errorText, { color: colors.textSecondary }]}>Contact not found</Text>
-      </View>
+      <LinearGradient
+        colors={['#7e8fa6', '#8b7aa8', '#6b5f8a']}
+        style={styles.container}
+      >
+        <Text style={styles.errorText}>Contact not found</Text>
+      </LinearGradient>
     );
   }
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <Stack.Screen
-        options={{
-          headerRight: () => (
-            <Pressable onPress={handleEdit} hitSlop={12}>
-              <Text style={[styles.editButton, { color: colors.tint }]}>Edit</Text>
-            </Pressable>
-          ),
-          headerBackTitle: 'Contacts',
-        }}
+    <View style={styles.container}>
+      <LinearGradient
+        colors={['#8a9bb0', '#9188a8', '#7a6d9e', '#6b5f8a']}
+        locations={[0, 0.3, 0.6, 1]}
+        style={StyleSheet.absoluteFill}
       />
+
+      <View style={[styles.customHeader, { paddingTop: insets.top }]}>
+        <View style={styles.headerLeftContainer}>
+          <Pressable onPress={() => router.back()} hitSlop={12}>
+            <BlurView intensity={30} tint="dark" style={styles.headerBackBlur}>
+              <Ionicons name="chevron-back" size={20} color="#FFFFFF" />
+            </BlurView>
+          </Pressable>
+        </View>
+        <View style={styles.headerRightContainer}>
+          <Pressable onPress={handleEdit} hitSlop={12}>
+            <BlurView intensity={30} tint="dark" style={styles.headerButtonBlur}>
+              <Text style={styles.editButtonText}>Edit</Text>
+            </BlurView>
+          </Pressable>
+        </View>
+      </View>
 
       <ScrollView
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: insets.bottom + 40 }}
+        contentContainerStyle={{ paddingTop: insets.top + 60, paddingBottom: insets.bottom + 40 }}
       >
         {/* Avatar & Name Header */}
         <View style={styles.header}>
-          <ContactAvatar
-            firstName={contact.firstName}
-            lastName={contact.lastName}
-            size="xlarge"
-            imageUrl={contact.imageUri}
-          />
-          <Text style={[styles.name, { color: colors.textPrimary }]}>{fullName}</Text>
-          {contact.company && (
-            <Text style={[styles.company, { color: colors.textSecondary }]}>{contact.company}</Text>
-          )}
+          {/* Glassmorphism avatar circle */}
+          <BlurView intensity={25} tint="light" style={styles.avatarBlurContainer}>
+            <View style={styles.avatarInner}>
+              <ContactAvatar
+                firstName={contact.firstName}
+                lastName={contact.lastName}
+                size="xlarge"
+                imageUrl={contact.imageUri}
+              />
+            </View>
+          </BlurView>
+
+          <Text style={styles.name}>{fullName}</Text>
         </View>
 
-        {/* Quick Actions */}
-        <View style={[styles.actionsCard, { backgroundColor: colors.card }]}>
-          <View style={styles.actionsRow}>
-            <Pressable style={styles.actionButton} onPress={handleCall}>
-              <View style={[styles.actionIcon, { backgroundColor: colors.green }]}>
-                <Ionicons name="call" size={18} color="#FFFFFF" />
-              </View>
-              <Text style={[styles.actionLabel, { color: colors.tint }]}>Call</Text>
-            </Pressable>
+        {/* Quick Action Buttons */}
+        <View style={styles.actionsRow}>
+          <ActionButton icon="chatbubble-ellipses" label="message" onPress={handleMessage} />
+          <ActionButton icon="call" label="call" onPress={handleCall} />
+          <ActionButton icon="videocam" label="video" onPress={() => {}} />
+          <ActionButton icon="mail" label="mail" onPress={handleMail} />
+        </View>
 
-            <Pressable style={styles.actionButton} onPress={handleMessage}>
-              <View style={[styles.actionIcon, { backgroundColor: colors.green }]}>
-                <Ionicons name="chatbubbles" size={18} color="#FFFFFF" />
-              </View>
-              <Text style={[styles.actionLabel, { color: colors.tint }]}>Message</Text>
-            </Pressable>
-
-            <Pressable style={styles.actionButton} onPress={handleMail}>
-              <View style={[styles.actionIcon, { backgroundColor: colors.green }]}>
-                <Ionicons name="mail" size={18} color="#FFFFFF" />
-              </View>
-              <Text style={[styles.actionLabel, { color: colors.tint }]}>Mail</Text>
-            </Pressable>
-
-            <Pressable style={styles.actionButton} onPress={handleHeartPress}>
-              <Animated.View style={heartAnimatedStyle}>
-                <View style={[styles.actionIcon, { backgroundColor: contact.isFavorite ? colors.starActive : colors.textSecondary }]}>
-                  <Ionicons
-                    name={contact.isFavorite ? 'star' : 'star-outline'}
-                    size={18}
-                    color="#FFFFFF"
-                  />
-                </View>
-              </Animated.View>
-              <Text style={[styles.actionLabel, { color: colors.tint }]}>
-                {contact.isFavorite ? 'Unstar' : 'Star'}
+        {/* Contact Photo & Poster Card */}
+        <BlurView intensity={20} tint="light" style={styles.glassCard}>
+          <Pressable style={styles.posterRow}>
+            <BlurView intensity={50} tint="dark" style={styles.posterAvatarBlur}>
+              <Text style={styles.posterAvatarText}>
+                {contact.firstName?.[0]?.toUpperCase() || '?'}
               </Text>
-            </Pressable>
-          </View>
-        </View>
+            </BlurView>
+            <Text style={styles.posterLabel}>Contact Photo & Poster</Text>
+            <Ionicons name="chevron-forward" size={18} color="rgba(255,255,255,0.7)" style={{ marginLeft: 'auto' }} />
+          </Pressable>
+        </BlurView>
 
         {/* Phone Numbers */}
         {contact.phones.length > 0 && (
-          <View style={styles.section}>
-            <Text style={[styles.sectionHeader, { color: colors.textSecondary }]}>phone</Text>
-            <View style={[styles.card, { backgroundColor: colors.card }]}>
-              {contact.phones.map((phone, index) => (
+          <BlurView intensity={20} tint="light" style={[styles.glassCard, { marginTop: 10 }]}>
+            {contact.phones.map((phone, index) => (
+              <View key={phone.id}>
                 <Pressable
-                  key={phone.id}
-                  style={styles.row}
+                  style={styles.infoRow}
                   onPress={() => handlePhonePress(phone.number)}
                 >
-                  <View style={styles.rowContent}>
-                    <Text style={[styles.rowValue, { color: colors.tint }]}>
-                      {phone.number}
-                    </Text>
-                    <Text style={[styles.rowLabel, { color: colors.textSecondary }]}>
-                      {getPhoneLabelDisplay(phone.label)}
-                    </Text>
+                  <View style={styles.infoContent}>
+                    <Text style={styles.infoLabel}>{getPhoneLabelDisplay(phone.label)}</Text>
+                    <Text style={styles.infoValue}>{phone.number}</Text>
                   </View>
-                  {index < contact.phones.length - 1 && (
-                    <View style={[styles.rowDivider, { backgroundColor: colors.divider }]} />
-                  )}
+                  <Animated.View style={heartAnimatedStyle}>
+                    <Pressable onPress={handleHeartPress} hitSlop={10}>
+                      <Ionicons
+                        name={contact.isFavorite ? 'star' : 'star-outline'}
+                        size={18}
+                        color={contact.isFavorite ? '#FFD700' : 'rgba(255,255,255,0.4)'}
+                      />
+                    </Pressable>
+                  </Animated.View>
                 </Pressable>
-              ))}
-            </View>
-          </View>
+                {index < contact.phones.length - 1 && (
+                  <View style={styles.divider} />
+                )}
+              </View>
+            ))}
+
+            {/* WhatsApp row - always show if phone exists */}
+            <View style={styles.divider} />
+            <Pressable style={styles.infoRow}>
+              <View style={styles.infoContent}>
+                <Text style={styles.infoLabel}>WhatsApp (Siri found in WhatsApp)</Text>
+                <Text style={styles.infoValue}>{contact.firstName}</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color="rgba(255,255,255,0.5)" />
+            </Pressable>
+          </BlurView>
         )}
 
         {/* Emails */}
         {contact.emails.length > 0 && (
-          <View style={styles.section}>
-            <Text style={[styles.sectionHeader, { color: colors.textSecondary }]}>email</Text>
-            <View style={[styles.card, { backgroundColor: colors.card }]}>
-              {contact.emails.map((email, index) => (
+          <BlurView intensity={20} tint="light" style={[styles.glassCard, { marginTop: 10 }]}>
+            {contact.emails.map((email, index) => (
+              <View key={email.id}>
                 <Pressable
-                  key={email.id}
-                  style={styles.row}
+                  style={styles.infoRow}
                   onPress={() => handleEmailPress(email.email)}
                 >
-                  <View style={styles.rowContent}>
-                    <Text style={[styles.rowValue, { color: colors.tint }]}>
-                      {email.email}
-                    </Text>
-                    <Text style={[styles.rowLabel, { color: colors.textSecondary }]}>
-                      {getEmailLabelDisplay(email.label)}
-                    </Text>
+                  <View style={styles.infoContent}>
+                    <Text style={styles.infoLabel}>{getEmailLabelDisplay(email.label)}</Text>
+                    <Text style={styles.infoValue}>{email.email}</Text>
                   </View>
-                  {index < contact.emails.length - 1 && (
-                    <View style={[styles.rowDivider, { backgroundColor: colors.divider }]} />
-                  )}
                 </Pressable>
-              ))}
-            </View>
-          </View>
+                {index < contact.emails.length - 1 && <View style={styles.divider} />}
+              </View>
+            ))}
+          </BlurView>
         )}
 
         {/* Address */}
         {contact.address && (
-          <View style={styles.section}>
-            <Text style={[styles.sectionHeader, { color: colors.textSecondary }]}>address</Text>
-            <View style={[styles.card, { backgroundColor: colors.card }]}>
-              <View style={styles.row}>
-                <View style={styles.rowContent}>
-                  <Text style={[styles.rowValue, { color: colors.tint }]}>
-                    {contact.address}
-                  </Text>
-                </View>
+          <BlurView intensity={20} tint="light" style={[styles.glassCard, { marginTop: 10 }]}>
+            <View style={styles.infoRow}>
+              <View style={styles.infoContent}>
+                <Text style={styles.infoLabel}>address</Text>
+                <Text style={styles.infoValue}>{contact.address}</Text>
               </View>
             </View>
-          </View>
+          </BlurView>
         )}
 
         {/* Notes */}
         {contact.notes && (
-          <View style={styles.section}>
-            <Text style={[styles.sectionHeader, { color: colors.textSecondary }]}>notes</Text>
-            <View style={[styles.card, { backgroundColor: colors.card }]}>
-              <View style={styles.notesRow}>
-                <Text style={[styles.notesText, { color: colors.textPrimary }]}>
-                  {contact.notes}
-                </Text>
+          <BlurView intensity={20} tint="light" style={[styles.glassCard, { marginTop: 10 }]}>
+            <View style={[styles.infoRow, { paddingVertical: 14 }]}>
+              <View style={styles.infoContent}>
+                <Text style={styles.infoLabel}>notes</Text>
+                <Text style={[styles.infoValue, { lineHeight: 22 }]}>{contact.notes}</Text>
               </View>
             </View>
-          </View>
+          </BlurView>
         )}
 
-        {/* Delete */}
-        <View style={styles.section}>
-          <Pressable
-            style={[styles.deleteButton, { backgroundColor: colors.card }]}
-            onPress={handleDelete}
-          >
-            <Text style={[styles.deleteButtonText, { color: colors.red }]}>Delete Contact</Text>
+        {/* Delete Button */}
+        <BlurView intensity={20} tint="light" style={[styles.glassCard, { marginTop: 10 }]}>
+          <Pressable style={styles.deleteRow} onPress={handleDelete}>
+            <Text style={styles.deleteText}>Delete Contact</Text>
           </Pressable>
-        </View>
+        </BlurView>
       </ScrollView>
 
-      {/* Edit Contact Modal */}
       <EditContactModal
         visible={showEditModal}
         contactId={id}
@@ -310,130 +303,237 @@ export default function ContactDetailsScreen() {
   );
 }
 
+// Reusable glass action button matching screenshot style
+function ActionButton({
+  icon,
+  label,
+  onPress,
+}: {
+  icon: keyof typeof Ionicons.glyphMap;
+  label: string;
+  onPress: () => void;
+}) {
+  return (
+    <Pressable style={styles.actionButton} onPress={onPress}>
+      <BlurView intensity={22} tint="light" style={styles.actionIconBlur}>
+        <Ionicons name={icon} size={22} color="#1a1a2e" />
+      </BlurView>
+      <Text style={styles.actionLabel}>{label}</Text>
+    </Pressable>
+  );
+}
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  customHeader: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingBottom: 8,
+    zIndex: 10,
+  },
+  headerLeftContainer: {
+    flex: 1,
+    alignItems: 'flex-start',
+  },
+  headerRightContainer: {
+    flex: 1,
+    alignItems: 'flex-end',
+  },
   scrollView: {
     flex: 1,
   },
+
+  // Header nav buttons
+  headerButtonBlur: {
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+    borderRadius: 20,
+    overflow: 'hidden',
+  },
+  headerBackBlur: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    overflow: 'hidden',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  editButtonText: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#FFFFFF',
+  },
+
+  // Header / avatar area
   header: {
     alignItems: 'center',
-    paddingTop: 20,
-    paddingBottom: 16,
+    paddingTop: 10,
+    paddingBottom: 8,
+  },
+  avatarBlurContainer: {
+    width: 130,
+    height: 130,
+    borderRadius: 65,
+    overflow: 'hidden',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1.5,
+    borderColor: 'rgba(255,255,255,0.35)',
+  },
+  avatarInner: {
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  simRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    marginTop: 18,
+    marginBottom: 6,
+    opacity: 0.85,
+  },
+  simText: {
+    fontSize: 13,
+    color: 'rgba(255,255,255,0.9)',
+    fontWeight: '400',
+    letterSpacing: 0.1,
   },
   name: {
-    fontSize: 26,
+    fontSize: 30,
     fontWeight: '700',
-    letterSpacing: 0.36,
-    marginTop: 12,
+    color: '#FFFFFF',
+    letterSpacing: 0.2,
+    marginTop: 2,
     textAlign: 'center',
   },
-  company: {
-    fontSize: 17,
-    fontWeight: '400',
-    letterSpacing: -0.41,
-    marginTop: 2,
-  },
-  actionsCard: {
-    marginHorizontal: 16,
-    borderRadius: 11,
-    marginBottom: 32,
-  },
+
+  // Action buttons row
   actionsRow: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
-    paddingVertical: 14,
-    paddingHorizontal: 8,
+    justifyContent: 'center',
+    gap: 20,
+    marginTop: 20,
+    marginBottom: 18,
+    paddingHorizontal: 16,
   },
   actionButton: {
     alignItems: 'center',
-    gap: 6,
+    gap: 7,
+    flex: 1,
   },
-  actionIcon: {
+  actionIconBlur: {
+    width: 62,
+    height: 62,
+    borderRadius: 31,
+    overflow: 'hidden',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.3)',
+    backgroundColor: 'rgba(200,195,220,0.35)',
+  },
+  actionLabel: {
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.85)',
+    fontWeight: '500',
+    letterSpacing: 0.2,
+  },
+
+  // Glass cards
+  glassCard: {
+    marginHorizontal: 16,
+    borderRadius: 14,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: 'rgba(160,150,185,0.25)',
+  },
+
+  // Contact Photo & Poster row
+  posterRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 14,
+    paddingVertical: 13,
+    gap: 12,
+  },
+  posterAvatarBlur: {
     width: 36,
     height: 36,
     borderRadius: 18,
+    overflow: 'hidden',
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: 'rgba(80,70,100,0.6)',
   },
-  actionLabel: {
-    fontSize: 11,
-    fontWeight: '500',
-    letterSpacing: 0.07,
-  },
-  editButton: {
-    fontSize: 17,
-    fontWeight: '400',
-    letterSpacing: -0.41,
-  },
-  section: {
-    marginBottom: 8,
-  },
-  sectionHeader: {
-    fontSize: 13,
+  posterAvatarText: {
+    fontSize: 16,
     fontWeight: '600',
-    letterSpacing: -0.08,
-    marginBottom: 6,
-    marginLeft: 32,
-    textTransform: 'lowercase',
+    color: '#FFFFFF',
   },
-  card: {
-    marginHorizontal: 16,
-    borderRadius: 11,
-    overflow: 'hidden',
+  posterLabel: {
+    fontSize: 16,
+    fontWeight: '400',
+    color: '#FFFFFF',
+    letterSpacing: -0.2,
   },
-  row: {
+
+  // Info rows (phone/email/address)
+  infoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 11,
-    minHeight: 44,
-    justifyContent: 'center',
+    minHeight: 52,
   },
-  rowContent: {
+  infoContent: {
     flex: 1,
   },
-  rowLabel: {
-    fontSize: 12,
+  infoLabel: {
+    fontSize: 13,
+    color: 'rgba(255,255,255,0.6)',
     fontWeight: '400',
     letterSpacing: -0.08,
-    marginTop: 2,
+    marginBottom: 2,
   },
-  rowValue: {
+  infoValue: {
     fontSize: 17,
+    color: '#FFFFFF',
     fontWeight: '400',
-    letterSpacing: -0.41,
+    letterSpacing: -0.4,
   },
-  rowDivider: {
-    position: 'absolute',
-    bottom: 0,
-    left: 16,
-    right: 0,
+  divider: {
     height: StyleSheet.hairlineWidth,
+    backgroundColor: 'rgba(255,255,255,0.18)',
+    marginLeft: 16,
   },
-  notesRow: {
-    paddingHorizontal: 16,
-    paddingVertical: 11,
+
+  // Delete
+  deleteRow: {
+    alignItems: 'center',
+    paddingVertical: 14,
   },
-  notesText: {
+  deleteText: {
     fontSize: 17,
+    color: '#FF6B6B',
     fontWeight: '400',
-    letterSpacing: -0.41,
-    lineHeight: 24,
+    letterSpacing: -0.4,
   },
+
   errorText: {
     fontSize: 17,
+    color: 'rgba(255,255,255,0.7)',
     textAlign: 'center',
     marginTop: 100,
-  },
-  deleteButton: {
-    alignItems: 'center',
-    paddingVertical: 13,
-    borderRadius: 11,
-    marginHorizontal: 16,
-  },
-  deleteButtonText: {
-    fontSize: 17,
-    fontWeight: '400',
-    letterSpacing: -0.41,
   },
 });

@@ -154,7 +154,7 @@ export default function AppLayout() {
           height: 0,
         },
         headerStyle: {
-          backgroundColor: colors.background,
+          backgroundColor: 'transparent',
         },
         headerTintColor: colors.tint,
         headerTitleStyle: {

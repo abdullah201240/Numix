@@ -15,11 +15,12 @@ export default function ContactsStackLayout() {
         },
         headerShadowVisible: false,
         contentStyle: {
-          backgroundColor: colors.background,
+          backgroundColor: 'transparent',
         },
         headerStyle: {
-          backgroundColor: colors.background,
+          backgroundColor: 'transparent',
         },
+        headerTransparent: true,
         headerBackTitleStyle: {
           fontSize: 17,
         },
@@ -28,8 +29,7 @@ export default function ContactsStackLayout() {
       <Stack.Screen
         name="[id]"
         options={{
-          title: '',
-          headerBackTitle: 'Contacts',
+          headerShown: false,
         }}
       />
       <Stack.Screen

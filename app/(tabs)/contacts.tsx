@@ -2,14 +2,14 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  ActivityIndicator,
-  FlatList,
-  Modal,
-  Pressable,
-  RefreshControl,
-  StyleSheet,
-  Text,
-  View,
+    ActivityIndicator,
+    FlatList,
+    Modal,
+    Pressable,
+    RefreshControl,
+    StyleSheet,
+    Text,
+    View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AddContactModal } from '../../components/contacts/AddContactModal';
@@ -215,7 +215,7 @@ export default function ContactsListScreen() {
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Header */}
-      <View style={[styles.header, { paddingTop: insets.top + 4 }]}>
+      <View style={[styles.header, { paddingTop: insets.top + 4, backgroundColor: 'transparent' }]}>
         <View style={styles.headerTop}>
           <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>Contacts</Text>
           <View style={styles.headerActions}>
@@ -324,6 +324,7 @@ const styles = StyleSheet.create({
   header: {
     paddingHorizontal: 0,
     paddingBottom: 0,
+    backgroundColor: 'transparent',
   },
   headerTop: {
     flexDirection: 'row',
